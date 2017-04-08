@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WindowsAzure.Storage" Version="8.1.1" />
+    <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Attribute\" />
+  </ItemGroup>
+</Project>
