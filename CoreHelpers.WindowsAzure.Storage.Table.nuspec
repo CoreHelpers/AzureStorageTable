@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0"?>
 <package >
   <metadata>
-  	<id>CoreHelpers.WindowsAzure.Storage.Table/id>
+    <id>CoreHelpers.WindowsAzure.Storage.Table</id>
     <version>0.0.1</version>
     <authors>Dirk Eisenberg</authors>
     <owners>Dirk Eisenberg</owners>
