@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/egop18jxjsfiublg?svg=true)](https://ci.appveyor.com/project/dei79/azurestoragetable)
+
 # AzureStorageTable
 This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity 
 from ITableEntity or TableEntity looks like a step backwards. The current implementation is intended to be an 
