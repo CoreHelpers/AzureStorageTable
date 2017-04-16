@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
 
-[assembly: AssemblyCompany("CoreHelpers.WindowsAzure.Storage.Table")]
-[assembly: AssemblyProduct("CoreHelpers.WindowsAzure.Storage.Table")]
-[assembly: AssemblyTitle("CoreHelpers.WindowsAzure.Storage.Table")]
+[assembly: AssemblyCompany("Core Helpers")]
+[assembly: AssemblyProduct("WindowsAzure.Storage.Table")]
+[assembly: AssemblyTitle("CoreHelpers Azure Storage Abstraction")]
 
 [assembly: AssemblyFileVersion("1.1.0.0")]
 [assembly: AssemblyVersion("1.1.0.0")]
