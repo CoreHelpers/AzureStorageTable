@@ -9,6 +9,12 @@ There are two different principals implemented. The first allows to define an ex
 the existing model and the required fields in Azure Table, e.g. Partition and RowKey. The second option is to 
 decorate existing  models with attributes to map the properties to partition and rowkey.
 
+## Installation
+
+```
+Install-Package CoreHelpers.WindowsAzure.Storage.Table
+```
+
 ## Manual Entity Mapper
 
 ```csharp
