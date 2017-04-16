@@ -49,44 +49,48 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         {
             var typesWithAttribute = assembly.GetTypesWithAttribute(typeof(StorableAttribute));
             foreach(var type in typesWithAttribute) {
-
-                // get the concrete attribute
-                var storableAttribute = type.GetTypeInfo().GetCustomAttribute<StorableAttribute>();                
-                if (String.IsNullOrEmpty(storableAttribute.Tablename)) {
-                    storableAttribute.Tablename = type.Name;
-                }
-
-                // store the neded properties
-                PropertyInfo partitionKeyProperty = null;
-                PropertyInfo rowKeyProperty = null;
-                
-                // get the partitionkey property & rowkey property
-                var properties = type.GetRuntimeProperties();
-                foreach (var property in properties)
-                {
-                    if (partitionKeyProperty != null && rowKeyProperty != null)
-                        break;
-                             
-	                if (partitionKeyProperty == null && property.GetCustomAttribute<PartitionKeyAttribute>() != null)
-	                    partitionKeyProperty = property;
-	
-	                if (rowKeyProperty == null && property.GetCustomAttribute<RowKeyAttribute>() != null)
-	                    rowKeyProperty = property;		               
-	            }
-
-                // check 
-                if (partitionKeyProperty == null || rowKeyProperty == null)
-                    throw new Exception("Missing Partition or RowKey Attribute");
-                    
-                // build the mapper
-                AddEntityMapper(type, new DynamicTableEntityMapper()
-                {
-                    TableName = storableAttribute.Tablename,
-                    PartitionKeyPropery = partitionKeyProperty.Name,
-                    RowKeyProperty = rowKeyProperty.Name
-                });                      
+                AddAttributeMapper(type);
             }
         }
+        
+        public void AddAttributeMapper(Type type) 
+        {
+    		// get the concrete attribute
+            var storableAttribute = type.GetTypeInfo().GetCustomAttribute<StorableAttribute>();                
+            if (String.IsNullOrEmpty(storableAttribute.Tablename)) {
+                storableAttribute.Tablename = type.Name;
+            }
+
+            // store the neded properties
+            PropertyInfo partitionKeyProperty = null;
+            PropertyInfo rowKeyProperty = null;
+            
+            // get the partitionkey property & rowkey property
+            var properties = type.GetRuntimeProperties();
+            foreach (var property in properties)
+            {
+                if (partitionKeyProperty != null && rowKeyProperty != null)
+                    break;
+                         
+                if (partitionKeyProperty == null && property.GetCustomAttribute<PartitionKeyAttribute>() != null)
+                    partitionKeyProperty = property;
+
+                if (rowKeyProperty == null && property.GetCustomAttribute<RowKeyAttribute>() != null)
+                    rowKeyProperty = property;		               
+            }
+
+            // check 
+            if (partitionKeyProperty == null || rowKeyProperty == null)
+                throw new Exception("Missing Partition or RowKey Attribute");
+                
+            // build the mapper
+            AddEntityMapper(type, new DynamicTableEntityMapper()
+            {
+                TableName = storableAttribute.Tablename,
+                PartitionKeyPropery = partitionKeyProperty.Name,
+                RowKeyProperty = rowKeyProperty.Name
+            });         
+        } 
                 
 		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
 		{
