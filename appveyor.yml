@@ -1,0 +1,16 @@
+version: 1.0.{build}
+build_script:
+- cmd: >-
+    dotnet restore
+
+
+    powershell -File %APPVEYOR_BUILD_FOLDER%\SetAssemblyInfoToVersion.ps1 %APPVEYOR_BUILD_VERSION% -path %APPVEYOR_BUILD_FOLDER%
+
+
+    dotnet build -c Release
+
+
+    nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version %APPVEYOR_BUILD_VERSION% -Verbosity detailed
+artifacts:
+- path: '*.nupkg'
+  name: NuGetPackage
