@@ -2,7 +2,7 @@
 namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 {
 	[Storable()]
-	[VirtualPartitonKey("{{Value1}}-{{Value2}}")]
+	[VirtualPartitionKey("{{Value1}}-{{Value2}}")]
 	[VirtualRowKey("{{Value2}}-{{Value3}}")]
 	public class VirtualPartKeyDemoModel
 	{
