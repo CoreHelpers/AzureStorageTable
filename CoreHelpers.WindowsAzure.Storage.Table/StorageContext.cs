@@ -62,33 +62,43 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
 
             // store the neded properties
-            PropertyInfo partitionKeyProperty = null;
-            PropertyInfo rowKeyProperty = null;
-            
+            string partitionKeyFormat = null;
+            string rowKeyFormat = null;
+                                    
             // get the partitionkey property & rowkey property
             var properties = type.GetRuntimeProperties();
             foreach (var property in properties)
             {
-                if (partitionKeyProperty != null && rowKeyProperty != null)
+                if (partitionKeyFormat != null && rowKeyFormat != null)
                     break;
                          
-                if (partitionKeyProperty == null && property.GetCustomAttribute<PartitionKeyAttribute>() != null)
-                    partitionKeyProperty = property;
-
-                if (rowKeyProperty == null && property.GetCustomAttribute<RowKeyAttribute>() != null)
-                    rowKeyProperty = property;		               
+                if (partitionKeyFormat == null && property.GetCustomAttribute<PartitionKeyAttribute>() != null)
+                    partitionKeyFormat = property.Name;
+				
+			 	if (rowKeyFormat == null && property.GetCustomAttribute<RowKeyAttribute>() != null)
+					rowKeyFormat = property.Name;		               
             }
 
+			// virutal partition key property
+			var virtualPartitionKeyAttribute = type.GetTypeInfo().GetCustomAttribute<VirtualPartitonKeyAttribute>();
+			if (virtualPartitionKeyAttribute != null && !String.IsNullOrEmpty(virtualPartitionKeyAttribute.PartitionKeyFormat))
+				partitionKeyFormat = virtualPartitionKeyAttribute.PartitionKeyFormat;
+			
+			// virutal row key property
+			var virtualRowKeyAttribute = type.GetTypeInfo().GetCustomAttribute<VirtualRowKeyAttribute>();
+			if (virtualRowKeyAttribute != null && !String.IsNullOrEmpty(virtualRowKeyAttribute.RowKeyFormat))
+				rowKeyFormat = virtualRowKeyAttribute.RowKeyFormat;
+				
             // check 
-            if (partitionKeyProperty == null || rowKeyProperty == null)
+            if (partitionKeyFormat == null || rowKeyFormat == null)
                 throw new Exception("Missing Partition or RowKey Attribute");
                 
             // build the mapper
             AddEntityMapper(type, new DynamicTableEntityMapper()
             {
                 TableName = storableAttribute.Tablename,
-                PartitionKeyPropery = partitionKeyProperty.Name,
-                RowKeyProperty = rowKeyProperty.Name
+                PartitionKeyFormat = partitionKeyFormat,
+                RowKeyFormat = rowKeyFormat
             });         
         } 
                 

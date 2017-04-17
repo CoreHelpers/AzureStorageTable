@@ -24,17 +24,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			// create a new user
 			var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
 			user.Contact = user.Contact + Guid.NewGuid().ToString();
+
+			var vpmodel = new VirtualPartitionKeyDemoModelPOCO() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
 			
 			using (var storageContext = new StorageContext(storageKey, storageSecret))
 			{
 				// configure the entity mapper
-				storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyPropery = "Contact", RowKeyProperty = "Contact" });
-			
+				storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+				storageContext.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), new DynamicTableEntityMapper() { TableName = "VirtualPartitionKeyDemoModelPOCO", PartitionKeyFormat = "{{Value1}}-{{Value2}}", RowKeyFormat = "{{Value2}}-{{Value3}}" });
+				
 				// ensure the table exists
 				storageContext.CreateTable<UserModel>();
+				storageContext.CreateTable<VirtualPartitionKeyDemoModelPOCO>();
 			
 				// inser the model
 				storageContext.MergeOrInsert<UserModel>(user);
+				storageContext.MergeOrInsert<VirtualPartitionKeyDemoModelPOCO>(vpmodel);
 			
 				// query all
 				var result = storageContext.Query<UserModel>();
@@ -76,17 +81,21 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
         {
             // create a new user
             var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };            
+        	var vpmodel = new VirtualPartKeyDemoModel() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
         
             using (var storageContext = new StorageContext(storageKey, storageSecret))
             {
                 // ensure we are using the attributes
                 storageContext.AddAttributeMapper(typeof(UserModel2));
+                storageContext.AddAttributeMapper(typeof(VirtualPartKeyDemoModel));
                 
                 // ensure the table exists
                 storageContext.CreateTable<UserModel2>();
+                storageContext.CreateTable<VirtualPartKeyDemoModel>();                
         
                 // inser the model
                 storageContext.MergeOrInsert<UserModel2>(user);
+                storageContext.MergeOrInsert<VirtualPartKeyDemoModel>(vpmodel);
         
                 // query all
                 var result = storageContext.Query<UserModel2>();

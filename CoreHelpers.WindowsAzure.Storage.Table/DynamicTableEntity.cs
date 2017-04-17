@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using HandlebarsDotNet;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -33,8 +34,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			get
 			{
-				var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.PartitionKeyPropery);
-				return propertyInfo.GetValue(_srcModel) as String;
+				if ( _entityMapper.PartitionKeyFormat.Contains("{{") && _entityMapper.PartitionKeyFormat.Contains("}}")) 
+				{
+					var template = Handlebars.Compile(_entityMapper.PartitionKeyFormat);
+					return template(_srcModel);
+				} else {
+					var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.PartitionKeyFormat);
+					return propertyInfo.GetValue(_srcModel) as String;
+				}					
 			}
 
 			set
@@ -47,8 +54,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			get
 			{
-				var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.RowKeyProperty);
-				return propertyInfo.GetValue(_srcModel) as String;
+				if ( _entityMapper.RowKeyFormat.Contains("{{") && _entityMapper.RowKeyFormat.Contains("}}")) 
+				{
+					var template = Handlebars.Compile(_entityMapper.RowKeyFormat);
+					return template(_srcModel);
+				} else {
+					var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.RowKeyFormat);
+					return propertyInfo.GetValue(_srcModel) as String;
+				}				
 			}
 
 			set
