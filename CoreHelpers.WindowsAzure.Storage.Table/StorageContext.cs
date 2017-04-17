@@ -80,7 +80,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
 
 			// virutal partition key property
-			var virtualPartitionKeyAttribute = type.GetTypeInfo().GetCustomAttribute<VirtualPartitonKeyAttribute>();
+			var virtualPartitionKeyAttribute = type.GetTypeInfo().GetCustomAttribute<VirtualPartitionKeyAttribute>();
 			if (virtualPartitionKeyAttribute != null && !String.IsNullOrEmpty(virtualPartitionKeyAttribute.PartitionKeyFormat))
 				partitionKeyFormat = virtualPartitionKeyAttribute.PartitionKeyFormat;
 			

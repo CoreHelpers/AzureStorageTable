@@ -1,7 +1,6 @@
 ﻿using System;
 namespace CoreHelpers.WindowsAzure.Storage.Table
-{
-	[AttributeUsage(AttributeTargets.Class)]
+{	
 	public class VirtualRowKeyAttribute : Attribute
 	{
 		public string RowKeyFormat { get; set; }
