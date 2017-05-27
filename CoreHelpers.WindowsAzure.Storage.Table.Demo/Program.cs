@@ -14,9 +14,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             var configLocation = Path.Combine("..", "Credentials.json");
             JObject config = (JObject)JsonConvert.DeserializeObject(File.ReadAllText(configLocation));        
 
-            // StorageWithStaticEntityMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
-            // StorageWithAttributeMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
-            StorageWithAttributeMapperManualRegistration(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+            StorageWithStaticEntityMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+            StorageWithAttributeMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+            StorageWithAttributeMapperManualRegistration(config.GetValue("key").ToString(),config.GetValue("secret").ToString());            
+            GetVirtualArray(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -103,6 +104,37 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 foreach (var r in result)
                 {
                     Console.WriteLine(r.FirstName);
+                }
+            }
+        }
+        
+        static void GetVirtualArray(string storageKey, string storageSecret) 
+        {
+			var model = new VArrayModel() { UUID = "112233" };
+			model.DataElements.Add(2);
+			model.DataElements.Add(3);
+			model.DataElements.Add(4);
+			
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+            {
+                // ensure we are using the attributes
+                storageContext.AddAttributeMapper(typeof(VArrayModel));                
+                
+                // ensure the table exists
+                storageContext.CreateTable<VArrayModel>();                
+        
+                // inser the model
+                storageContext.MergeOrInsert<VArrayModel>(model);                
+        
+                // query all
+                var result = storageContext.Query<VArrayModel>();
+        
+                foreach (var r in result)
+                {
+                    Console.WriteLine(r.UUID);
+
+					foreach (var e in r.DataElements)
+						Console.WriteLine(e);
                 }
             }
         }

@@ -1,4 +1,6 @@
 ﻿using System;
+using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+
 namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 {
 	[Storable()]

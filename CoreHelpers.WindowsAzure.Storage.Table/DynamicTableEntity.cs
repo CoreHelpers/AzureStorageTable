@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using HandlebarsDotNet;
+using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -140,12 +142,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					continue;
 				}
 
-				EntityProperty newProperty = EntityProperty.CreateEntityPropertyFromObject(property.GetValue(entity, null));
-
-				// property will be null if unknown type
-				if (newProperty != null)
+				// check if we have a special convert attached via attribute if so generate the required target 
+				// properties with the correct converter
+				if (property.GetCustomAttribute<VirtualTypeAttribute>() != null)
 				{
-					retVals.Add(property.Name, newProperty);
+					var typeConvert = property.GetCustomAttribute<VirtualTypeAttribute>();
+					typeConvert.WriteProperty(property, entity, retVals);					
+				}
+				else
+				{
+					EntityProperty newProperty = EntityProperty.CreateEntityPropertyFromObject(property.GetValue(entity, null));
+
+					// property will be null if unknown type
+					if (newProperty != null)
+					{
+						retVals.Add(property.Name, newProperty);
+					}
 				}
 			}
 
@@ -163,99 +175,24 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					continue;
 				}
 
-				// only proceed with properties that have a corresponding entry in the dictionary
-				if (!properties.ContainsKey(property.Name))
+				// check if we have a special convert attached via attribute if so generate the required target 
+				// properties with the correct converter
+				if (property.GetCustomAttribute<VirtualTypeAttribute>() != null)
 				{
-					// Logger.LogInformational(operationContext, SR.TraceMissingDictionaryEntry, property.Name);
-					continue;
+					var typeConvert = property.GetCustomAttribute<VirtualTypeAttribute>();
+					typeConvert.ReadProperty(property, entity, properties);
 				}
-
-				EntityProperty entityProperty = properties[property.Name];
-
-				//if (entityProperty.IsNull)
-				//{
-				//	property.SetValue(entity, null, null);
-				//}
-				//else
+				else
 				{
-					switch (entityProperty.PropertyType)
+					// only proceed with properties that have a corresponding entry in the dictionary
+					if (!properties.ContainsKey(property.Name))
 					{
-						case EdmType.String:
-							if (property.PropertyType != typeof(string))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.StringValue, null);
-							break;
-						case EdmType.Binary:
-							if (property.PropertyType != typeof(byte[]))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.BinaryValue, null);
-							break;
-						case EdmType.Boolean:
-							if (property.PropertyType != typeof(bool) && property.PropertyType != typeof(bool?))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.BooleanValue, null);
-							break;
-						case EdmType.DateTime:
-							if (property.PropertyType == typeof(DateTime))
-							{
-								property.SetValue(entity, entityProperty.DateTimeOffsetValue.Value.UtcDateTime, null);
-							}
-							else if (property.PropertyType == typeof(DateTime?))
-							{
-								property.SetValue(entity, entityProperty.DateTimeOffsetValue.HasValue ? entityProperty.DateTimeOffsetValue.Value.UtcDateTime : (DateTime?)null, null);
-							}
-							else if (property.PropertyType == typeof(DateTimeOffset))
-							{
-								property.SetValue(entity, entityProperty.DateTimeOffsetValue.Value, null);
-							}
-							else if (property.PropertyType == typeof(DateTimeOffset?))
-							{
-								property.SetValue(entity, entityProperty.DateTimeOffsetValue, null);
-							}
-
-							break;
-						case EdmType.Double:
-							if (property.PropertyType != typeof(double) && property.PropertyType != typeof(double?))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.DoubleValue, null);
-							break;
-						case EdmType.Guid:
-							if (property.PropertyType != typeof(Guid) && property.PropertyType != typeof(Guid?))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.GuidValue, null);
-							break;
-						case EdmType.Int32:
-							if (property.PropertyType != typeof(int) && property.PropertyType != typeof(int?))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.Int32Value, null);
-							break;
-						case EdmType.Int64:
-							if (property.PropertyType != typeof(long) && property.PropertyType != typeof(long?))
-							{
-								continue;
-							}
-
-							property.SetValue(entity, entityProperty.Int64Value, null);
-							break;
+						// Logger.LogInformational(operationContext, SR.TraceMissingDictionaryEntry, property.Name);
+						continue;
 					}
+
+					EntityProperty entityProperty = properties[property.Name];
+					property.SetValueFromEntityProperty(entity, entityProperty);
 				}
 			}
 		}
