@@ -83,3 +83,45 @@ using (var storageContext = new StorageContext(storageKey, storageSecret))
   }
 }
 ```
+
+## Virtual Partition and Row-Keys
+When implementing storage schemes in Azure Table sometimes the partition or the row key are combinations out for two or more properties. Because of that the Azure Storage Table components supports virtual partition and row key attributes as follows:
+
+```csharp
+[Storable()]
+[VirtualPartitionKey("{{Value1}}-{{Value2}}")]
+[VirtualRowKey("{{Value2}}-{{Value3}}")]
+public class VirtualPartKeyDemoModel
+{
+  public string Value1 { get; set;  }
+  public string Value2 { get; set;  }				
+  public string Value3 { get; set;  }
+}
+ ```
+
+## Virtual Array Attributes
+When storing arrays in Azure Table store there are two options. The first option is to store it as a JSON payload and the second option is to expand the array with his items to separate properties, e.g.
+
+```json
+{ DataElements: [1,2,3,4] }
+```
+
+becomes 
+
+| DE00 | DE01 | DE02 | DE03 |
+| --- | --- | --- | --- |
+| 1 | 2 | 3 | 4 |
+
+in Azure Table Store with the following code: 
+
+```csharp
+[Storable(Tablename: "VArrayModels")]
+public class VArrayModel
+{
+  [PartitionKey]
+  [RowKey]
+  public string UUID { get; set; }
+
+  [VirtualList(PropertyFormat: "DE{{index}}", Digits: 2)]
+  public List<int> DataElements { get; set; } = new List<int>();
+}
