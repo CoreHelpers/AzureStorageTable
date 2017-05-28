@@ -149,6 +149,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					var typeConvert = property.GetCustomAttribute<VirtualTypeAttribute>();
 					typeConvert.WriteProperty(property, entity, retVals);					
 				}
+				else if (property.GetCustomAttribute<StoreAsAttribute>() != null)
+				{
+					var typeConvert = property.GetCustomAttribute<StoreAsAttribute>();
+					var newProperty = typeConvert.ConvertToEntityProperty(property, entity);
+					retVals.Add(property.Name, newProperty);
+				}
 				else
 				{
 					EntityProperty newProperty = EntityProperty.CreateEntityPropertyFromObject(property.GetValue(entity, null));
@@ -181,7 +187,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				{
 					var typeConvert = property.GetCustomAttribute<VirtualTypeAttribute>();
 					typeConvert.ReadProperty(property, entity, properties);
-				}
+				}				
 				else
 				{
 					// only proceed with properties that have a corresponding entry in the dictionary
@@ -192,7 +198,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					}
 
 					EntityProperty entityProperty = properties[property.Name];
-					property.SetValueFromEntityProperty(entity, entityProperty);
+					
+					if (property.GetCustomAttribute<StoreAsAttribute>() != null)
+					{
+						var typeConvert = property.GetCustomAttribute<StoreAsAttribute>();
+						var model = typeConvert.ConvertFromEntityProperty(property, entityProperty);
+						property.SetValue(entity, model);						
+					}
+					else
+					{						
+						property.SetValueFromEntityProperty(entity, entityProperty);
+					}
 				}
 			}
 		}

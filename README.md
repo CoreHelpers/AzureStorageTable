@@ -125,3 +125,20 @@ public class VArrayModel
   [VirtualList(PropertyFormat: "DE{{index}}", Digits: 2)]
   public List<int> DataElements { get; set; } = new List<int>();
 }
+```
+
+## Store as JSON Object Attribute
+The store as JSON attribute allows to store refenrenced objects as json payload for a specific property
+ 
+```csharp 
+[Storable(Tablename: "JObjectModel")]
+public class JObjectModel
+{
+ [PartitionKey]
+ [RowKey]
+ public string UUID { get; set; }
+ 
+ [StoreAsJsonObject]
+ public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
+}
+```

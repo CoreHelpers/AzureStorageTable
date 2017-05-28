@@ -207,33 +207,39 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, TableContinuationToken continuationToken = null) where T : new()
 		{
-			// Retrieve a reference to the table.
-			CloudTable table = GetTableReference(GetTableName<T>());
+			try
+			{
+				// Retrieve a reference to the table.
+				CloudTable table = GetTableReference(GetTableName<T>());
 
-			// lookup the entitymapper
-			var entityMapper = _entityMapperRegistry[typeof(T)];
+				// lookup the entitymapper
+				var entityMapper = _entityMapperRegistry[typeof(T)];
 
-			// Construct the query to get all entries
-			TableQuery<DynamicTableEntity<T>> query = new TableQuery<DynamicTableEntity<T>>();
+				// Construct the query to get all entries
+				TableQuery<DynamicTableEntity<T>> query = new TableQuery<DynamicTableEntity<T>>();
 
-			// add partitionkey if exists
-			if (partitionKey != null)
-			 	query = query.Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey));
+				// add partitionkey if exists
+				if (partitionKey != null)
+					query = query.Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey));
 
-			// add row key if exists
-			if (rowKey != null)
-				query = query.Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
+				// add row key if exists
+				if (rowKey != null)
+					query = query.Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
 
-			// execute the query
-			var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
+				// execute the query											
+				var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
+				
+				// map all to the original models
+				List<T> result = new List<T>();
+				foreach (DynamicTableEntity<T> model in queryResult)
+					result.Add(model.Model);
 
-			// map all to the original models
-			List<T> result = new List<T>();
-			foreach (DynamicTableEntity<T> model in queryResult)
-				result.Add(model.Model);
-
-			// done 
-			return result.AsQueryable();
+				// done 
+				return result.AsQueryable();
+				
+			} catch(Exception e) {
+				throw e;
+			}
 		}
 
 		private CloudTable GetTableReference(string tableName) {

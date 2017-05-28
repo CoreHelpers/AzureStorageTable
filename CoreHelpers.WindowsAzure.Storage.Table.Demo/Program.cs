@@ -18,6 +18,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             StorageWithAttributeMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
             StorageWithAttributeMapperManualRegistration(config.GetValue("key").ToString(),config.GetValue("secret").ToString());            
             GetVirtualArray(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+            StoreAsJson(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -135,6 +136,35 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 
 					foreach (var e in r.DataElements)
 						Console.WriteLine(e);
+                }
+            }
+        }
+        
+        static void StoreAsJson(string storageKey, string storageSecret) 
+        {
+			var model = new JObjectModel() { UUID = "112233" };
+			model.Data.Add("HEllo", "world");
+			
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+            {
+                // ensure we are using the attributes
+                storageContext.AddAttributeMapper(typeof(JObjectModel));                
+                
+                // ensure the table exists
+                storageContext.CreateTable<JObjectModel>();                
+        
+                // inser the model
+                storageContext.MergeOrInsert<JObjectModel>(model);                
+        
+                // query all
+                var result = storageContext.Query<JObjectModel>();
+        
+                foreach (var r in result)
+                {
+                    Console.WriteLine(r.UUID);
+
+					foreach (var e in r.Data)
+						Console.WriteLine(e.Key + "-" + e.Value);
                 }
             }
         }
