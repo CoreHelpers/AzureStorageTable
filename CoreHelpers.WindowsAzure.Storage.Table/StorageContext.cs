@@ -232,8 +232,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				if (partitionKey != null && rowKey != null)
 					query = query.Where(TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, rowKeyFilter));
 				else if (partitionKey != null && rowKey == null)
-					query = query.Where(partitionKeyFilter);
-				else
+					query = query.Where(partitionKeyFilter);										
+				else if (partitionKey == null && rowKey != null)
 					throw new Exception("PartitionKey must have a value");	
 					
 				// execute the query											
