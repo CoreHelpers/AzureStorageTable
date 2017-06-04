@@ -77,10 +77,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 						property.SetOrAddValue(entity, entityProperty.GuidValue, isCollection);
 						break;
 					case EdmType.Int32:
-						if (propertyType != typeof(int) && propertyType != typeof(int?))						
-							break;						
+						if (propertyType != typeof(int) && propertyType != typeof(int?) &&
+							propertyType != typeof(double) && propertyType != typeof(double?))												
+							break;
 
-						property.SetOrAddValue(entity, entityProperty.Int32Value, isCollection);
+						if (propertyType == typeof(double) || propertyType == typeof(double?))
+							property.SetOrAddValue(entity, Convert.ToDouble(entityProperty.Int32Value), isCollection);
+						else												
+							property.SetOrAddValue(entity, entityProperty.Int32Value, isCollection);
+							
 						break;
 					case EdmType.Int64:
 						if (propertyType != typeof(long) && propertyType != typeof(long?))						
