@@ -218,14 +218,24 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// Construct the query to get all entries
 				TableQuery<DynamicTableEntity<T>> query = new TableQuery<DynamicTableEntity<T>>();
 
-				// add partitionkey if exists
+				// add partitionkey if exists		
+				string partitionKeyFilter = null;
 				if (partitionKey != null)
-					query = query.Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey));
+					partitionKeyFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
 
 				// add row key if exists
+				string rowKeyFilter = null;
 				if (rowKey != null)
-					query = query.Where(TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey));
+					rowKeyFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey);
 
+				// build the query filter
+				if (partitionKey != null && rowKey != null)
+					query = query.Where(TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, rowKeyFilter));
+				else if (partitionKey != null && rowKey == null)
+					query = query.Where(partitionKeyFilter);
+				else
+					throw new Exception("PartitionKey must have a value");	
+					
 				// execute the query											
 				var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
 				
