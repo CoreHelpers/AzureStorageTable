@@ -29,27 +29,30 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 
 			var vpmodel = new VirtualPartitionKeyDemoModelPOCO() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
 			
-			using (var storageContext = new StorageContext(storageKey, storageSecret))
+			using (var storageContextParent = new StorageContext(storageKey, storageSecret))
 			{
 				// configure the entity mapper
-				storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
-				storageContext.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), new DynamicTableEntityMapper() { TableName = "VirtualPartitionKeyDemoModelPOCO", PartitionKeyFormat = "{{Value1}}-{{Value2}}", RowKeyFormat = "{{Value2}}-{{Value3}}" });
-				
-				// ensure the table exists
-				storageContext.CreateTable<UserModel>();
-				storageContext.CreateTable<VirtualPartitionKeyDemoModelPOCO>();
-			
-				// inser the model
-				storageContext.MergeOrInsert<UserModel>(user);
-				storageContext.MergeOrInsert<VirtualPartitionKeyDemoModelPOCO>(vpmodel);
-			
+				storageContextParent.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+				storageContextParent.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), new DynamicTableEntityMapper() { TableName = "VirtualPartitionKeyDemoModelPOCO", PartitionKeyFormat = "{{Value1}}-{{Value2}}", RowKeyFormat = "{{Value2}}-{{Value3}}" });
+
+				using (var storageContext = new StorageContext(storageContextParent))
+				{
+					// ensure the table exists
+					storageContext.CreateTable<UserModel>();
+					storageContext.CreateTable<VirtualPartitionKeyDemoModelPOCO>();
+
+					// inser the model
+					storageContext.MergeOrInsert<UserModel>(user);
+					storageContext.MergeOrInsert<VirtualPartitionKeyDemoModelPOCO>(vpmodel);
+				}
+
 				// query all
-				var result = storageContext.Query<UserModel>();
-			
+				var result = storageContextParent.Query<UserModel>();
+
 				foreach (var r in result)
 				{
 					Console.WriteLine(r.FirstName);
-				}
+				}				
 			}
 		}
         

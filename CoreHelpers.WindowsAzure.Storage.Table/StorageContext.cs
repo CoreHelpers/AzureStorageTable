@@ -26,6 +26,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			_storageAccount 	= new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
 		}
+		
+		public StorageContext(StorageContext parentContext)
+		{
+			_storageAccount = parentContext._storageAccount;
+			_entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
+		}
 
 		public void Dispose()
 		{
