@@ -147,6 +147,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
         {
 			var model = new JObjectModel() { UUID = "112233" };
 			model.Data.Add("HEllo", "world");
+			model.Data2.Value = "Hello 23";
 			
 			using (var storageContext = new StorageContext(storageKey, storageSecret))
             {

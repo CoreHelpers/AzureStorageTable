@@ -7,7 +7,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class StoreAsJsonObjectAttribute : StoreAsAttribute
-	{		
+	{	
+		private Type ObjectType { get; set; }
+		
+		public StoreAsJsonObjectAttribute() 
+		{}
+			
+		public StoreAsJsonObjectAttribute(Type objectType) 
+		{
+			ObjectType = objectType;
+		}
+		
 		public override EntityProperty ConvertToEntityProperty(PropertyInfo property, object obj)
 		{
 			// get the value 
@@ -21,8 +31,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 		}
 		
 		public override Object ConvertFromEntityProperty(PropertyInfo property, EntityProperty entityProperty)
-		{				
-			return JsonConvert.DeserializeObject(entityProperty.StringValue, property.PropertyType);			
+		{
+			if (ObjectType != null)
+			{
+				return JsonConvert.DeserializeObject(entityProperty.StringValue, ObjectType);
+			}
+			else
+			{
+				return JsonConvert.DeserializeObject(entityProperty.StringValue, property.PropertyType);
+			}
 		}
 	}
 }
