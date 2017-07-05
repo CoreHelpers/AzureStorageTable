@@ -19,6 +19,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             StorageWithAttributeMapperManualRegistration(config.GetValue("key").ToString(),config.GetValue("secret").ToString());            
             GetVirtualArray(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
             StoreAsJson(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+			TestAutoCreateTable(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -169,6 +170,33 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 
 					foreach (var e in r.Data)
 						Console.WriteLine(e.Key + "-" + e.Value);
+                }
+            }
+        }
+        
+        static void TestAutoCreateTable(string storageKey, string storageSecret) 
+        {		
+			// create a new user
+			var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
+	
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+            {
+            	// generate tablename
+				var tableName = "T" + Guid.NewGuid().ToString();
+				tableName = tableName.Replace("-", "");
+				
+                // ensure we are using the attributes
+                storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+                
+                // inser the model
+                storageContext.EnableAutoCreateTable().MergeOrInsert<UserModel>(user);                
+        
+                // query all
+                var result = storageContext.Query<UserModel>();
+        
+                foreach (var r in result)
+                {
+                    Console.WriteLine(r.LastName);					
                 }
             }
         }

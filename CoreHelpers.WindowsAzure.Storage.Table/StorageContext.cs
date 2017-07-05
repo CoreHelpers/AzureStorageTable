@@ -21,7 +21,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		private CloudStorageAccount _storageAccount { get; set; }
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
-
+		private bool _autoCreateTable { get; set; } = false;
+		
 		public StorageContext(string storageAccountName, string storageAccountKey)
 		{
 			_storageAccount 	= new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
@@ -36,6 +37,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		public void Dispose()
 		{
 			
+		}
+		
+		public StorageContext EnableAutoCreateTable() 
+		{
+			_autoCreateTable = true;
+			return this;
 		}
 
 		public void AddEntityMapper(Type entityType, DynamicTableEntityMapper entityMapper)
@@ -176,38 +183,54 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return entityMapper.TableName;
 		}
 
-		private Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
+		private async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
 		{
-			// Retrieve a reference to the table.
-			CloudTable table = GetTableReference(GetTableName<T>());
-
-			// Create the batch operation.
-			TableBatchOperation batchOperation = new TableBatchOperation();
-
-			// lookup the entitymapper
-			var entityMapper = _entityMapperRegistry[typeof(T)];
-
-			// Add all items
-			foreach (var model in models)
+			try
 			{
-				switch(storaeOperationType) {
-					case nStoreOperation.insertOperation:
-						batchOperation.Insert(new DynamicTableEntity<T>(model, entityMapper));
-						break;
-					case nStoreOperation.insertOrReplaceOperation:
-						batchOperation.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
-						break;
-					case nStoreOperation.mergeOperation:
-						batchOperation.Merge(new DynamicTableEntity<T>(model, entityMapper));
-						break;
-					case nStoreOperation.mergeOrInserOperation:
-						batchOperation.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
-						break;
-				}
-			}
+				// Retrieve a reference to the table.
+				CloudTable table = GetTableReference(GetTableName<T>());
 
-			// execute 
-			return table.ExecuteBatchAsync(batchOperation);
+				// Create the batch operation.
+				TableBatchOperation batchOperation = new TableBatchOperation();
+
+				// lookup the entitymapper
+				var entityMapper = _entityMapperRegistry[typeof(T)];
+
+				// Add all items
+				foreach (var model in models)
+				{
+					switch (storaeOperationType)
+					{
+						case nStoreOperation.insertOperation:
+							batchOperation.Insert(new DynamicTableEntity<T>(model, entityMapper));
+							break;
+						case nStoreOperation.insertOrReplaceOperation:
+							batchOperation.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
+							break;
+						case nStoreOperation.mergeOperation:
+							batchOperation.Merge(new DynamicTableEntity<T>(model, entityMapper));
+							break;
+						case nStoreOperation.mergeOrInserOperation:
+							batchOperation.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
+							break;
+					}
+				}
+
+				// execute 
+				await table.ExecuteBatchAsync(batchOperation);
+			} 
+			catch (StorageException ex) 
+			{
+				// check the exception
+				if (!_autoCreateTable || !ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+					throw ex;
+
+				// try to create the table	
+				await CreateTableAsync<T>();
+
+				// retry 
+				await StoreAsync<T>(storaeOperationType, models);					
+			}
 		}
 
 
