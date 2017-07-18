@@ -23,9 +23,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
 		
-		public StorageContext(string storageAccountName, string storageAccountKey)
+		public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
 		{
-			_storageAccount 	= new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
+			var connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
+			if (!String.IsNullOrEmpty(storageEndpointSuffix))
+				connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
+			
+			_storageAccount = CloudStorageAccount.Parse(connectionString);
 		}
 		
 		public StorageContext(StorageContext parentContext)
