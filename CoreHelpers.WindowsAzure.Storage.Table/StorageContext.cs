@@ -125,10 +125,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _entityMapperRegistry.Keys;
         } 
         
-		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
+        public Task CreateTableAsync(Type entityType, bool ignoreErrorIfExists = true) 
 		{
-			// Retrieve a reference to the table.
-			CloudTable table = GetTableReference(GetTableName<T>());
+				// Retrieve a reference to the table.
+			CloudTable table = GetTableReference(GetTableName(entityType));
 
 			if (ignoreErrorIfExists)
 			{
@@ -141,7 +141,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				return table.CreateAsync();
 			}
 		}
-
+		
+		
+		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
+		{
+			return CreateTableAsync(typeof(T), ignoreErrorIfExists);
+		}
+		
 		public void CreateTable<T>(bool ignoreErrorIfExists = true)
 		{
 			this.CreateTableAsync<T>(ignoreErrorIfExists).GetAwaiter().GetResult();
@@ -183,10 +189,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return await QueryAsyncInternal<T>(null, null, continuationToken);
 		}
 
-		private string GetTableName<T>()
+		private string GetTableName<T>() 
+		{
+			return GetTableName(typeof(T));
+		}
+		
+		private string GetTableName(Type entityType)
 		{
 			// lookup the entitymapper
-			var entityMapper = _entityMapperRegistry[typeof(T)];
+			var entityMapper = _entityMapperRegistry[entityType];
 
 			// get the table name
 			return entityMapper.TableName;
