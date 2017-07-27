@@ -119,7 +119,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 RowKeyFormat = rowKeyFormat
             });         
         } 
-                
+               
+        public IEnumerable<Type> GetRegisteredMappers() 
+        {
+			return _entityMapperRegistry.Keys;
+        } 
+        
 		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
 		{
 			// Retrieve a reference to the table.
