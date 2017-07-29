@@ -167,10 +167,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			return this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);
 		}
+		
+		public Task InsertOrReplaceAsync<T>(T model) where T : new()
+		{
+			return this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });
+		}
 
 		public Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new()
 		{
 			return this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);
+		}
+		
+		public Task MergeOrInsertAsync<T>(T model) where T : new()
+		{
+			return this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
 		}
 
 		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey) where T : new()
