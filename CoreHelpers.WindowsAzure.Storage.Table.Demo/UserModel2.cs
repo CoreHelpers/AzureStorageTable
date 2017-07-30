@@ -5,8 +5,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 {
     [Storable()]
 	public class UserModel2
-	{                       
-        [PartitionKey]
+	{
+		[PartitionKey]
+		public string P { get; set; } = "Partition01";
+		
         [RowKey]
         public string Contact { get; set; }
     

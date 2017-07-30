@@ -21,6 +21,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             StoreAsJson(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
 			TestAutoCreateTable(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
 			TestAutoCreateTableGermanCloud(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");
+			CreateModelsPaged(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -227,6 +228,31 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                     Console.WriteLine(r.LastName);					
                 }
             }
+        }
+        
+        
+        static void CreateModelsPaged(string storageKey, string storageSecret) 
+        {
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+			{
+				storageContext.AddAttributeMapper(typeof(UserModel2));
+				storageContext.CreateTable<UserModel2>(true);
+
+				var startDate = DateTime.Now;
+				
+				using (var pagedWriter = new PagedTableEntityWriter<UserModel2>(storageContext, nStoreOperation.insertOrReplaceOperation, 100))
+				{					
+					for (var i = 0; i < 1000; i++) 
+					{
+						var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = string.Format("em-{0}@acme.org", i) };
+						pagedWriter.StoreAsync(user).ConfigureAwait(false).GetAwaiter().GetResult();
+					}
+				}
+
+				var endDate = DateTime.Now;
+				
+				Console.WriteLine("Took {0} seconds", (endDate- startDate).TotalSeconds);
+			}
         }
     }
 }

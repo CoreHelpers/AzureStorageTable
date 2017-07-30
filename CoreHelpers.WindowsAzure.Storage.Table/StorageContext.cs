@@ -10,15 +10,15 @@ using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
+	public enum nStoreOperation {
+		insertOperation, 
+		insertOrReplaceOperation,
+		mergeOperation,
+		mergeOrInserOperation
+	}
+	
 	public class StorageContext : IDisposable
-	{
-		private enum nStoreOperation {
-			insertOperation, 
-			insertOrReplaceOperation,
-			mergeOperation,
-			mergeOrInserOperation
-		}
-
+	{		
 		private CloudStorageAccount _storageAccount { get; set; }
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
@@ -213,7 +213,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return entityMapper.TableName;
 		}
 
-		private async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
+		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
 		{
 			try
 			{
