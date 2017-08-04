@@ -119,7 +119,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             // build the mapper
             AddEntityMapper(type, new DynamicTableEntityMapper()
             {
-                TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? optionalTablenameOverride : storableAttribute.Tablename,
+                TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? storableAttribute.Tablename : optionalTablenameOverride,
                 PartitionKeyFormat = partitionKeyFormat,
                 RowKeyFormat = rowKeyFormat
             });         

@@ -235,7 +235,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
         {
 			using (var storageContext = new StorageContext(storageKey, storageSecret))
 			{
-				storageContext.AddAttributeMapper(typeof(UserModel2));
+				storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");
 				storageContext.CreateTable<UserModel2>(true);
 
 				var startDate = DateTime.Now;
