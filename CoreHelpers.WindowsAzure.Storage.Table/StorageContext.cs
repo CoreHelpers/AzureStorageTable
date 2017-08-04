@@ -73,6 +73,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         
         public void AddAttributeMapper(Type type) 
         {
+        	AddAttributeMapper(type, string.Empty);
+        }
+        
+        public void AddAttributeMapper(Type type, String optionalTablenameOverride ) 
+        {
     		// get the concrete attribute
             var storableAttribute = type.GetTypeInfo().GetCustomAttribute<StorableAttribute>();                
             if (String.IsNullOrEmpty(storableAttribute.Tablename)) {
@@ -114,7 +119,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             // build the mapper
             AddEntityMapper(type, new DynamicTableEntityMapper()
             {
-                TableName = storableAttribute.Tablename,
+                TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? optionalTablenameOverride : storableAttribute.Tablename,
                 PartitionKeyFormat = partitionKeyFormat,
                 RowKeyFormat = rowKeyFormat
             });         
