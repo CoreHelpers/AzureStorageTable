@@ -188,20 +188,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
 		}
 
-		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey) where T : new()
+		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
 		{
-			var result = await QueryAsyncInternal<T>(partitionKey, rowKey, null);
+			var result = await QueryAsyncInternal<T>(partitionKey, rowKey, maxItems, null);
 			return result.FirstOrDefault<T>();
 		}
 
-		public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey, TableContinuationToken continuationToken = null) where T : new()
+		public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey,  int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
-			return await QueryAsyncInternal<T>(partitionKey, null, continuationToken);
+			return await QueryAsyncInternal<T>(partitionKey, null, maxItems, continuationToken);
 		}
 
-		public async Task<IQueryable<T>> QueryAsync<T>(TableContinuationToken continuationToken = null) where T: new() 
+		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0, TableContinuationToken continuationToken = null) where T: new() 
 		{
-			return await QueryAsyncInternal<T>(null, null, continuationToken);
+			return await QueryAsyncInternal<T>(null, null, maxItems, continuationToken);
 		}
 
 		private string GetTableName<T>() 
@@ -269,7 +269,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		}
 
 
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, TableContinuationToken continuationToken = null) where T : new()
+		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
 			try
 			{
@@ -292,14 +292,18 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				if (rowKey != null)
 					rowKeyFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey);
 
+				// define the max query items
+				if (maxItems > 0)
+					query = query.Take(maxItems);
+					
 				// build the query filter
 				if (partitionKey != null && rowKey != null)
 					query = query.Where(TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, rowKeyFilter));
 				else if (partitionKey != null && rowKey == null)
 					query = query.Where(partitionKeyFilter);										
 				else if (partitionKey == null && rowKey != null)
-					throw new Exception("PartitionKey must have a value");	
-					
+					throw new Exception("PartitionKey must have a value");
+				
 				// execute the query											
 				var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
 				

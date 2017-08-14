@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,7 +22,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             StoreAsJson(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
 			TestAutoCreateTable(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
 			TestAutoCreateTableGermanCloud(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");
-			CreateModelsPaged(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
+			CreateModelsPaged(config.GetValue("key").ToString(), config.GetValue("secret").ToString());			
+			CheckMaxItems(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -252,6 +254,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 				var endDate = DateTime.Now;
 				
 				Console.WriteLine("Took {0} seconds", (endDate- startDate).TotalSeconds);
+			}
+        }
+        
+        static void CheckMaxItems(string storageKey, string storageSecret) 
+        {
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+			{
+				storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");
+				storageContext.CreateTable<UserModel2>(true);
+
+				var items = storageContext.Query<UserModel2>(5).AsEnumerable();
+				Console.WriteLine("Found {0} items", items.Count());
+				if (items.Count() != 5)
+					throw new Exception("Wrong Item Count");
 			}
         }
     }

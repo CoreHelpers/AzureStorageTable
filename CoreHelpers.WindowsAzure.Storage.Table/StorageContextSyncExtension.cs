@@ -47,9 +47,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			context.MergeOrInsertAsync<T>(new List<T>() { model }).GetAwaiter().GetResult();
 		}
 
-		public static IQueryable<T> Query<T>(this StorageContext context, TableContinuationToken continuationToken = null) where T : new()
+		public static IQueryable<T> Query<T>(this StorageContext context,  int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
-			return context.QueryAsync<T>(continuationToken).GetAwaiter().GetResult();
+			return context.QueryAsync<T>(maxItems, continuationToken).GetAwaiter().GetResult();
 		}
 
 		public static T Query<T>(this StorageContext context, string partitionKey, string rowKey) where T : new()
@@ -57,9 +57,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return context.QueryAsync<T>(partitionKey, rowKey).GetAwaiter().GetResult();
 		}
 
-		public static IQueryable<T> Query<T>(this StorageContext context, string partitionKey, TableContinuationToken continuationToken = null) where T : new() 
+		public static IQueryable<T> Query<T>(this StorageContext context, string partitionKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new() 
 		{
-			return context.QueryAsync<T>(partitionKey, continuationToken).GetAwaiter().GetResult();	
+			return context.QueryAsync<T>(partitionKey, maxItems, continuationToken).GetAwaiter().GetResult();	
 		}
 	}
 }

