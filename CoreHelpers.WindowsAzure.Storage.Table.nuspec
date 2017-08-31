@@ -12,10 +12,15 @@
     <dependencies>
       <group targetFramework=".NETStandard1.6">
         <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
-      </group>
         <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
         <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
         <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NET45">
+        <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
+        <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
     </dependencies>
   </metadata>
   <files>
