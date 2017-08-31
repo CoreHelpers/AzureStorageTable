@@ -6,8 +6,6 @@ build_script:
     dotnet restore CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj
     
     
-    msbuild /t:Restore CoreHelpers.WindowsAzure.Storage.Table.Net45\CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj
-
 
     powershell -File %APPVEYOR_BUILD_FOLDER%\SetAssemblyInfoToVersion.ps1 %APPVEYOR_BUILD_VERSION% -path %APPVEYOR_BUILD_FOLDER%
 
