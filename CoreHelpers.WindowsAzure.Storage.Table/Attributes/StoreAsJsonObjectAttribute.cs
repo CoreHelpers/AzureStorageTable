@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Reflection;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
@@ -8,7 +9,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 	[AttributeUsage(AttributeTargets.Property)]
 	public class StoreAsJsonObjectAttribute : StoreAsAttribute
 	{	
-		private Type ObjectType { get; set; }
+		protected Type ObjectType { get; set; }
 		
 		public StoreAsJsonObjectAttribute() 
 		{}
@@ -31,8 +32,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 		}
 		
 		public override Object ConvertFromEntityProperty(PropertyInfo property, EntityProperty entityProperty)
-		{
-			if (ObjectType != null)
+		{			
+			if (ObjectType != null && typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(ObjectType) && ObjectType.GetTypeInfo().UnderlyingSystemType != null)
+			{				
+				var convertedElements = JsonConvert.DeserializeObject(entityProperty.StringValue, ObjectType);
+				return Activator.CreateInstance(property.PropertyType, convertedElements);
+			} else if (ObjectType != null)
 			{
 				return JsonConvert.DeserializeObject(entityProperty.StringValue, ObjectType);
 			}

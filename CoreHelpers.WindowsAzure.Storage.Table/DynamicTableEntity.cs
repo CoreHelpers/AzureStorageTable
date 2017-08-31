@@ -202,8 +202,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					if (property.GetCustomAttribute<StoreAsAttribute>() != null)
 					{
 						var typeConvert = property.GetCustomAttribute<StoreAsAttribute>();
-						var model = typeConvert.ConvertFromEntityProperty(property, entityProperty);
-						property.SetValue(entity, model);						
+						var model = typeConvert.ConvertFromEntityProperty(property, entityProperty);						
+						property.SetValue(entity, model);																
 					}
 					else
 					{						
