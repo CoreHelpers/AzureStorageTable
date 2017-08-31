@@ -3,18 +3,18 @@ init:
 - ps: '[System.IO.File]::AppendAllText("C:\Windows\System32\drivers\etc\hosts", "`n93.184.221.200  api.nuget.org")'
 build_script:
 - cmd: >-
-    dotnet restore CoreHelpers.WindowsAzure.Storage.Table.csproj
+    dotnet restore CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj
     
     
-    msbuild /t:Restore CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj
+    msbuild /t:Restore CoreHelpers.WindowsAzure.Storage.Table.Net45\CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj
 
 
     powershell -File %APPVEYOR_BUILD_FOLDER%\SetAssemblyInfoToVersion.ps1 %APPVEYOR_BUILD_VERSION% -path %APPVEYOR_BUILD_FOLDER%
 
     
-    dotnet build -c Release CoreHelpers.WindowsAzure.Storage.Table.csproj
+    dotnet build -c Release CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj
     
-    msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj
+    msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45\CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj
 
     nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version %APPVEYOR_BUILD_VERSION% -Verbosity detailed
 artifacts:
