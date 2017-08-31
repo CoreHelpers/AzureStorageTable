@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B319A160-29EC-4B9F-9D6B-E271E374E5FF}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CoreHelpers.WindowsAzure.Storage.Table</RootNamespace>
+    <AssemblyName>CoreHelpers.WindowsAzure.Storage.Table</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\net40\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\net40\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyExtensions.cs" />
+    <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Attributes\PartitionKeyAttribute.cs" />
+    <Compile Include="Attributes\RowKeyAttribute.cs" />
+    <Compile Include="Attributes\StorableAttribute.cs" />
+    <Compile Include="Attributes\StoreAsAttribute.cs" />
+    <Compile Include="Attributes\StoreAsJsonObjectAttribute.cs" />
+    <Compile Include="Attributes\VirtualListAttribute.cs" />
+    <Compile Include="Attributes\VirtualPartitionKeyAttribute.cs" />
+    <Compile Include="Attributes\VirtualRowKeyAttribute.cs" />
+    <Compile Include="Attributes\VirtualTypeAttribute.cs" />
+    <Compile Include="DynamicTableEntity.cs" />
+    <Compile Include="DynamicTableEntityMapper.cs" />
+    <Compile Include="Extensions\EntityPropertyExtension.cs" />
+    <Compile Include="Extensions\PropertyInfoExtension.cs" />
+    <Compile Include="Extensions\PropertyInfoSetValueFromEntityProperty.cs" />
+    <Compile Include="PagedTableEntityWriter.cs" />
+    <Compile Include="StorageContext.cs" />
+    <Compile Include="StorageContextSyncExtension.cs" />
+    <Compile Include="TableConstants.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
