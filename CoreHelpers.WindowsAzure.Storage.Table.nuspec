@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>CoreHelpers.WindowsAzure.Storage.Table</id>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <authors>Dirk Eisenberg</authors>
     <owners>Dirk Eisenberg</owners>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
