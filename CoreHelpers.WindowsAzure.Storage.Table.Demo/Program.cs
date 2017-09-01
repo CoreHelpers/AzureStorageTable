@@ -15,7 +15,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             var configLocation = Path.Combine("..", "Credentials.json");
             JObject config = (JObject)JsonConvert.DeserializeObject(File.ReadAllText(configLocation));        
 
-            StorageWithStaticEntityMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
+       		StorageWithStaticEntityMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
             StorageWithAttributeMapper(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
             StorageWithAttributeMapperManualRegistration(config.GetValue("key").ToString(),config.GetValue("secret").ToString());            
             GetVirtualArray(config.GetValue("key").ToString(),config.GetValue("secret").ToString());
@@ -24,6 +24,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			TestAutoCreateTableGermanCloud(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");
 			CreateModelsPaged(config.GetValue("key").ToString(), config.GetValue("secret").ToString());			
 			CheckMaxItems(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
+			TestReadInterfaceValues(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
         }
 
 		static void StorageWithStaticEntityMapper(string storageKey, string storageSecret) 
@@ -270,5 +271,33 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 					throw new Exception("Wrong Item Count");
 			}
         }
+
+		static void TestReadInterfaceValues(string storageKey, string storageSecret)
+		{
+			// create a new user
+			var user01 = new UserModel3() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
+			var user02 = new UserModel3() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
+			user02.Codes.Add(new Code() { CodeType = "x1", CodeValue = "x2" });
+			user02.Codes.Add(new Code() { CodeType = "x3", CodeValue = "x4" });
+
+
+			using (var storageContext = new StorageContext(storageKey, storageSecret))
+			{
+				// ensure we are using the attributes
+				storageContext.AddAttributeMapper(typeof(UserModel3));
+
+				// insert the model
+				storageContext.EnableAutoCreateTable().MergeOrInsert<UserModel3>(user01);
+				storageContext.EnableAutoCreateTable().MergeOrInsert<UserModel3>(user02);
+
+				// query all
+				var result = storageContext.Query<UserModel3>();
+
+				foreach (var r in result)
+				{
+					Console.WriteLine("{0}: {1}", r.LastName, r.Codes.Count());
+				}
+			}
+		}
     }
 }
