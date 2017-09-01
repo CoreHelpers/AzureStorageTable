@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>CoreHelpers.WindowsAzure.Storage.Table</id>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <authors>Dirk Eisenberg</authors>
     <owners>Dirk Eisenberg</owners>
     <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
@@ -12,13 +12,19 @@
     <dependencies>
       <group targetFramework=".NETStandard1.6">
         <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
-        <dependency id="WindowsAzure.Storage" version="8.1.1" exclude="Build,Analyzers" />
+        <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
         <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
-        <dependency id="Handlebars.Net" version="1.8.0" exclude="Build,Analyzers" />
+        <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NET45">
+        <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
+        <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard1.6\*.dll" target="lib\netstandard1.6" />    
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard1.6\CoreHelpers*.dll" target="lib\netstandard1.6" />    
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table.net45\bin\Release\net45\CoreHelpers*.dll" target="lib\net45" />   
   </files>
 </package>
