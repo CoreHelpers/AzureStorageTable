@@ -1,14 +1,17 @@
 version: 1.5.{build}
 init:
 - ps: '[System.IO.File]::AppendAllText("C:\Windows\System32\drivers\etc\hosts", "`n93.184.221.200  api.nuget.org")'
+
+assembly_info:
+  patch: true
+  file: %APPVEYOR_BUILD_FOLDER%\CoreHelpers.WindowsAzure.Storage.Table\AssemblyInfo.cs
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: $(appveyor_build_version)
+  
 build_script:
 - cmd: >-
     dotnet restore CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj
-    
-    
-
-    powershell -File %APPVEYOR_BUILD_FOLDER%\SetAssemblyInfoToVersion.ps1 %APPVEYOR_BUILD_VERSION% -path %APPVEYOR_BUILD_FOLDER%
-
     
     dotnet build -c Release CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj
     
