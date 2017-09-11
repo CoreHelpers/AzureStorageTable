@@ -283,6 +283,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 
 			using (var storageContext = new StorageContext(storageKey, storageSecret))
 			{
+				// set the delegate 
+				storageContext.SetDelegate(new DemoDelegate());
+				
 				// ensure we are using the attributes
 				storageContext.AddAttributeMapper(typeof(UserModel3));
 
@@ -300,4 +303,26 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			}
 		}
     }
+
+	public class DemoDelegate : IStorageContextDelegate
+	{
+		public void OnQueryed(Type modelType, string partitionKey, string rowKey, int maxItems, bool isContinuationQuery, Exception e)
+		{	
+			
+		}
+
+		public void OnQuerying(Type modelType, string partitionKey, string rowKey, int maxItems, bool isContinuationQuery)
+		{	
+			Console.WriteLine("Query for {0}: P: {1}, R: {2}, C: {3}", modelType.ToString(), partitionKey, rowKey, isContinuationQuery ? "Yes": "No");				
+		}
+
+		public void OnStored(Type modelType, nStoreOperation storaeOperationType, int modelCount, Exception e)
+		{		
+		}
+
+		public void OnStoring(Type modelType, nStoreOperation storaeOperationType)
+		{		
+			Console.WriteLine("Store for {0}: O: {1}", modelType.ToString(), storaeOperationType.ToString());				
+		}
+	}
 }

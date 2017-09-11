@@ -22,6 +22,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		private CloudStorageAccount _storageAccount { get; set; }
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
+		private IStorageContextDelegate _delegate { get; set; }
 		
 		public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
 		{
@@ -36,11 +37,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			_storageAccount = parentContext._storageAccount;
 			_entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
+			this.SetDelegate(parentContext._delegate);
 		}
 
 		public void Dispose()
 		{
 			
+		}
+		
+		public void SetDelegate(IStorageContextDelegate delegateModel)
+		{
+			_delegate = delegateModel;		
 		}
 		
 		public StorageContext EnableAutoCreateTable() 
@@ -222,6 +229,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			try
 			{
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnStoring(typeof(T), storaeOperationType);
+					
 				// Retrieve a reference to the table.
 				CloudTable table = GetTableReference(GetTableName<T>());
 
@@ -231,6 +242,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
 
+				// define the modelcounter
+				int modelCounter = 0;
+				
 				// Add all items
 				foreach (var model in models)
 				{
@@ -249,16 +263,28 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 							batchOperation.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
 							break;
 					}
+
+					modelCounter++;
 				}
 
 				// execute 
 				await table.ExecuteBatchAsync(batchOperation);
+				
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnStored(typeof(T), storaeOperationType, modelCounter, null);				
 			} 
 			catch (StorageException ex) 
 			{
 				// check the exception
 				if (!_autoCreateTable || !ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+				{
+					// notify delegate
+					if (_delegate != null)
+						_delegate.OnStored(typeof(T), storaeOperationType, 0, ex);				
+					
 					throw ex;
+				}
 
 				// try to create the table	
 				await CreateTableAsync<T>();
@@ -273,6 +299,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			try
 			{
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnQuerying(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null);				
+					
 				// Retrieve a reference to the table.
 				CloudTable table = GetTableReference(GetTableName<T>());
 
@@ -312,10 +342,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				foreach (DynamicTableEntity<T> model in queryResult)
 					result.Add(model.Model);
 
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);				
+								
 				// done 
 				return result.AsQueryable();
 				
 			} catch(Exception e) {
+			
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);				
+				
+				// throw exception
 				throw e;
 			}
 		}
