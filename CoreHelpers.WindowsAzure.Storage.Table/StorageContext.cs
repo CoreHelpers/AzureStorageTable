@@ -204,18 +204,18 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
 		{
-			var result = await QueryAsyncInternal<T>(partitionKey, rowKey, maxItems, null);
+			var result = await QueryAsyncInternal<T>(partitionKey, rowKey, maxItems);
 			return result.FirstOrDefault<T>();
 		}
 
-		public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey,  int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
+		public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey,  int maxItems = 0) where T : new()
 		{
-			return await QueryAsyncInternal<T>(partitionKey, null, maxItems, continuationToken);
+			return await QueryAsyncInternal<T>(partitionKey, null, maxItems);
 		}
 
-		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0, TableContinuationToken continuationToken = null) where T: new() 
+		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0) where T: new() 
 		{
-			return await QueryAsyncInternal<T>(null, null, maxItems, continuationToken);
+			return await QueryAsyncInternal<T>(null, null, maxItems);
 		}
 		
 		private string GetTableName<T>() 
@@ -399,10 +399,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			}
 		}
 		
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
+		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken nextToken = null) where T : new()
 		{			
 			// query the first page
-			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, maxItems, continuationToken);
+			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, maxItems, nextToken);
 			
 			// check if we have reached the max items
 			if (maxItems > 0 && result.Items.Count() >= maxItems)
