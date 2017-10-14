@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
+namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.Models
 {
 	[Storable(Tablename: "VArrayModels")]
 	public class VArrayModel

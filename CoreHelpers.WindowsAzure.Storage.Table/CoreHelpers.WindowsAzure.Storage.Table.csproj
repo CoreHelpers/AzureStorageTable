@@ -13,5 +13,6 @@
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Extensions\" />
+    <Folder Include="Delegates\" />
   </ItemGroup>
 </Project>

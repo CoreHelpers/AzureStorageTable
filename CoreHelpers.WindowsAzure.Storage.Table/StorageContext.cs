@@ -14,7 +14,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		insertOperation, 
 		insertOrReplaceOperation,
 		mergeOperation,
-		mergeOrInserOperation
+		mergeOrInserOperation,
+		delete
+	}
+
+	public class QueryResult<T>
+	{
+		public IQueryable<T> Items { get; internal set; }
+		public TableContinuationToken NextToken { get; internal set; }
 	}
 	
 	public class StorageContext : IDisposable
@@ -165,34 +172,34 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			this.CreateTableAsync<T>(ignoreErrorIfExists).GetAwaiter().GetResult();
 		}
 
-		public Task InsertAsync<T>(IEnumerable<T> models) where T : new ()
+		public async Task InsertAsync<T>(IEnumerable<T> models) where T : new ()
 		{
-			return this.StoreAsync(nStoreOperation.insertOperation, models);
+			await this.StoreAsync(nStoreOperation.insertOperation, models);
 		}
 
-		public Task MergeAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task MergeAsync<T>(IEnumerable<T> models) where T : new()
 		{
-			return this.StoreAsync(nStoreOperation.mergeOperation, models);
+			await this.StoreAsync(nStoreOperation.mergeOperation, models);
 		}
 
-		public Task InsertOrReplaceAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task InsertOrReplaceAsync<T>(IEnumerable<T> models) where T : new()
 		{
-			return this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);
+			await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);
 		}
 		
-		public Task InsertOrReplaceAsync<T>(T model) where T : new()
+		public async Task InsertOrReplaceAsync<T>(T model) where T : new()
 		{
-			return this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });
+			await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });
 		}
 
-		public Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new()
 		{
-			return this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);
+			await this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);
 		}
 		
-		public Task MergeOrInsertAsync<T>(T model) where T : new()
+		public async Task MergeOrInsertAsync<T>(T model) where T : new()
 		{
-			return this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
+			await this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
 		}
 
 		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
@@ -210,7 +217,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			return await QueryAsyncInternal<T>(null, null, maxItems, continuationToken);
 		}
-
+		
 		private string GetTableName<T>() 
 		{
 			return GetTableName(typeof(T));
@@ -224,7 +231,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			// get the table name
 			return entityMapper.TableName;
 		}
-
+		
 		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
 		{
 			try
@@ -237,42 +244,61 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				CloudTable table = GetTableReference(GetTableName<T>());
 
 				// Create the batch operation.
-				TableBatchOperation batchOperation = new TableBatchOperation();
+				List<TableBatchOperation> batchOperations = new List<TableBatchOperation>();
+				
+				// Create the first batch
+				var currentBatch = new TableBatchOperation();
+				batchOperations.Add(currentBatch);
 
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
 
 				// define the modelcounter
 				int modelCounter = 0;
-				
+
 				// Add all items
 				foreach (var model in models)
 				{
 					switch (storaeOperationType)
 					{
 						case nStoreOperation.insertOperation:
-							batchOperation.Insert(new DynamicTableEntity<T>(model, entityMapper));
+							currentBatch.Insert(new DynamicTableEntity<T>(model, entityMapper));
 							break;
 						case nStoreOperation.insertOrReplaceOperation:
-							batchOperation.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
+							currentBatch.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
 							break;
 						case nStoreOperation.mergeOperation:
-							batchOperation.Merge(new DynamicTableEntity<T>(model, entityMapper));
+							currentBatch.Merge(new DynamicTableEntity<T>(model, entityMapper));
 							break;
 						case nStoreOperation.mergeOrInserOperation:
-							batchOperation.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
+							currentBatch.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
+							break;
+						case nStoreOperation.delete: 
+							currentBatch.Delete(new DynamicTableEntity<T>(model, entityMapper));
 							break;
 					}
 
 					modelCounter++;
+
+					if (modelCounter % 100 == 0)
+					{
+						currentBatch = new TableBatchOperation();
+						batchOperations.Add(currentBatch);
+					}
 				}
 
 				// execute 
-				await table.ExecuteBatchAsync(batchOperation);
-				
-				// notify delegate
-				if (_delegate != null)
-					_delegate.OnStored(typeof(T), storaeOperationType, modelCounter, null);				
+				foreach (var createdBatch in batchOperations)
+				{
+					if (createdBatch.Count() > 0)
+					{
+						await table.ExecuteBatchAsync(createdBatch);
+
+						// notify delegate
+						if (_delegate != null)
+							_delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count(), null);
+					}
+				}
 			} 
 			catch (StorageException ex) 
 			{
@@ -294,8 +320,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			}
 		}
 
+		public async Task DeleteAsync<T>(T model) where T: new() 
+		{
+			await this.StoreAsync(nStoreOperation.delete, new List<T>() { model });
+		}
+		
+		public async Task DeleteAsync<T>(IEnumerable<T> models) where T: new() 
+		{
+			await this.StoreAsync(nStoreOperation.delete, models);
+		}
 
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
+		private async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
 			try
 			{
@@ -344,10 +379,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 				// notify delegate
 				if (_delegate != null)
-					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);				
-								
+					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);
+
 				// done 
-				return result.AsQueryable();
+				return new QueryResult<T>() 
+				{ 
+					Items = result.AsQueryable(), 
+					NextToken = queryResult.ContinuationToken 
+				};
 				
 			} catch(Exception e) {
 			
@@ -359,7 +398,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				throw e;
 			}
 		}
-
+		
+		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
+		{			
+			// query the first page
+			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, maxItems, continuationToken);
+			
+			// check if we have reached the max items
+			if (maxItems > 0 && result.Items.Count() >= maxItems)
+				return result.Items;
+			
+			if (result.NextToken != null) 						
+				return result.Items.Concat(await this.QueryAsyncInternal<T>(partitionKey, rowKey, maxItems, result.NextToken));
+			else 			
+				return result.Items;					
+		}
+	
 		private CloudTable GetTableReference(string tableName) {
 			
 			// create the table client 

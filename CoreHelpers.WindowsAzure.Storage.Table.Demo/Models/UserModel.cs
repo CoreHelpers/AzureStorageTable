@@ -1,5 +1,5 @@
 ﻿using System;
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
+namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.Models
 {
 	public class UserModel
 	{

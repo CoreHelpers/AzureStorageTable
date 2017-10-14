@@ -122,14 +122,14 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContext.cs">
       <Link>StorageContext.cs</Link>
     </Compile>
-    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContextSyncExtension.cs">
-      <Link>StorageContextSyncExtension.cs</Link>
-    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\TableConstants.cs">
       <Link>TableConstants.cs</Link>
     </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\IStorageContextDelegate.cs">
       <Link>IStorageContextDelegate.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Delegates\StorageContextStatsDelegate.cs">
+      <Link>Delegates\StorageContextStatsDelegate.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

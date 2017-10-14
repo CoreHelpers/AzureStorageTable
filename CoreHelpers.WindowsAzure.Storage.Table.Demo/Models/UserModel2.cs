@@ -1,7 +1,7 @@
 ﻿using System;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
+namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.Models
 {		
     [Storable()]
 	public class UserModel2
