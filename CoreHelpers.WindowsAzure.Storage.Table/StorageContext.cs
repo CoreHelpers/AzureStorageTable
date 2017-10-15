@@ -24,6 +24,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		public TableContinuationToken NextToken { get; internal set; }
 	}
 	
+	
+	
 	public class StorageContext : IDisposable
 	{		
 		private CloudStorageAccount _storageAccount { get; set; }
@@ -330,7 +332,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			await this.StoreAsync(nStoreOperation.delete, models);
 		}
 
-		private async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
+		internal async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
 			try
 			{
@@ -424,6 +426,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 			// Retrieve a reference to the table.
 			return tableClient.GetTableReference(tableName);
+		}
+		
+		
+		public StorageContextQueryCursor<T> QueryPaged<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
+		{
+			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, maxItems);
 		}
 	}
 }

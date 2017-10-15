@@ -33,7 +33,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 				new UC07CreateModelsPaged(),
 				new UC08CheckMaxItems(),
 				new UC09ReadInterfaceValues(),
-				new UC10CreateHugeAmountOfDemoEntries()
+				new UC10CreateHugeAmountOfDemoEntries(),
+				new UC11ReadPageByPage()
 			};
 			
 			// register demo cases for Ger Cloud

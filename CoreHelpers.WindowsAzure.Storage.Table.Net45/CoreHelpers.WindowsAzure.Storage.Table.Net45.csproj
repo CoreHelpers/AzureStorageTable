@@ -131,6 +131,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Delegates\StorageContextStatsDelegate.cs">
       <Link>Delegates\StorageContextStatsDelegate.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContextQueryCursor.cs">
+      <Link>StorageContextQueryCursor.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
