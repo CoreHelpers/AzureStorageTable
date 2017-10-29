@@ -12,6 +12,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 				// get the collection 
 				var collection = propertyInfo.GetValue(obj) as IList;
 
+                // initialize the collection dynamicall if required 
+                if (collection == null) 
+                {
+                    collection = Activator.CreateInstance(propertyInfo.PropertyType) as IList;
+                    propertyInfo.SetValue(obj, collection);
+                }                    
+                
 				// add the value 
 				collection.Add(val);
 			} else
