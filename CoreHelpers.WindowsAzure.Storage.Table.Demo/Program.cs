@@ -36,7 +36,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 				new UC10CreateHugeAmountOfDemoEntries(),
 				new UC11ReadPageByPage(),
                 new UC12PartialUpdateMergeModel(),
-                new UC13DynamicallyCreateList()
+                new UC13DynamicallyCreateList(),
+                new UC14WriteNullList()
 			};
 			
 			// register demo cases for Ger Cloud

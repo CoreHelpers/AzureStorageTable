@@ -23,6 +23,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 		{
 			// get the value 
 			var element = property.GetValue(obj);
+            if (element == null)
+                return null;
 
 			// convert to strong 
 			var stringifiedElement = JsonConvert.SerializeObject(element);

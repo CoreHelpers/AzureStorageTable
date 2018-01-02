@@ -153,17 +153,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				{
 					var typeConvert = property.GetCustomAttribute<StoreAsAttribute>();
 					var newProperty = typeConvert.ConvertToEntityProperty(property, entity);
-					retVals.Add(property.Name, newProperty);
+
+                    if (newProperty != null)
+					    retVals.Add(property.Name, newProperty);
 				}
 				else
 				{
 					EntityProperty newProperty = EntityProperty.CreateEntityPropertyFromObject(property.GetValue(entity, null));
 
 					// property will be null if unknown type
-					if (newProperty != null)
-					{
-						retVals.Add(property.Name, newProperty);
-					}
+					if (newProperty != null)					
+						retVals.Add(property.Name, newProperty);					
 				}
 			}
 
