@@ -69,6 +69,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			_entityMapperRegistry.Add(entityType, entityMapper);
 		}
+
+        public void RemoveEntityMapper(Type entityType)
+        {
+            if (_entityMapperRegistry.ContainsKey(entityType))
+                _entityMapperRegistry.Remove(entityType);
+        }
         
         public void AddAttributeMapper() 
         {
@@ -140,15 +146,25 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 RowKeyFormat = rowKeyFormat
             });         
         } 
-               
+                       
         public IEnumerable<Type> GetRegisteredMappers() 
         {
 			return _entityMapperRegistry.Keys;
-        } 
+        }
+
+        public void OverrideTableName<T>(string tableName) {
+            OverrideTableName(typeof(T), tableName);
+        }
+
+        public void OverrideTableName(Type entityType, string tableName)
+        {
+            if (_entityMapperRegistry.ContainsKey(entityType))
+                _entityMapperRegistry[entityType].TableName = tableName;
+        }
         
         public Task CreateTableAsync(Type entityType, bool ignoreErrorIfExists = true) 
 		{
-				// Retrieve a reference to the table.
+		    // Retrieve a reference to the table.
 			CloudTable table = GetTableReference(GetTableName(entityType));
 
 			if (ignoreErrorIfExists)
@@ -173,6 +189,27 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			this.CreateTableAsync<T>(ignoreErrorIfExists).GetAwaiter().GetResult();
 		}
+
+        public async Task DropTableAsync(Type entityType, bool ignoreErrorIfNotExists = true) 
+        {
+            // Retrieve a reference to the table.
+            CloudTable table = GetTableReference(GetTableName(entityType));
+
+            if (ignoreErrorIfNotExists)
+                await table.DeleteIfExistsAsync();
+            else
+                await table.DeleteAsync();
+        }
+
+        public async Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true)
+        {
+            await DropTableAsync(typeof(T), ignoreErrorIfNotExists);
+        }
+
+        public void DropTable<T>(bool ignoreErrorIfNotExists = true) 
+        {
+            Task.Run(async () => await DropTableAsync(typeof(T), ignoreErrorIfNotExists)).Wait();
+        }
 
 		public async Task InsertAsync<T>(IEnumerable<T> models) where T : new ()
 		{
