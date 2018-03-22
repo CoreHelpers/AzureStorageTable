@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -414,7 +415,40 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// map all to the original models
 				List<T> result = new List<T>();
 				foreach (DynamicTableEntity<T> model in queryResult)
-					result.Add(model.Model);
+                {
+                    IEnumerable<PropertyInfo> objectProperties = model.Model.GetType().GetTypeInfo().GetProperties();
+
+                    foreach (PropertyInfo property in objectProperties)
+                    {
+                        if (property.GetCustomAttribute<RelatedTableAttribute>() is RelatedTableAttribute relatedTable)
+                        {
+
+                            if (property.PropertyType.IsSubclassOfRawGeneric(typeof(Lazy<>)))
+                            {
+                                var endType = property.PropertyType.GetTypeInfo().GenericTypeArguments[0];
+                                var lazyType = typeof(DynamicLazy<>);
+                                var constructed = lazyType.MakeGenericType(endType);
+
+                                object o = Activator.CreateInstance(constructed, new Func<object>(() =>
+                                {
+                                    string extPartition = model.RowKey;
+                                    string extRowKey = "";
+
+                                    var method = typeof(StorageContext).GetMethod("");
+                                    var generic = method.MakeGenericMethod(endType);
+                                    var waitable = (dynamic)generic.Invoke(this, new object[] { extPartition, extRowKey, 1} );                                  
+
+                                    return waitable.Result;
+                                }));
+                            }
+                            else
+                            {
+
+                            }
+                        }
+                    }
+                    result.Add(model.Model);
+                }
 
 				// notify delegate
 				if (_delegate != null)

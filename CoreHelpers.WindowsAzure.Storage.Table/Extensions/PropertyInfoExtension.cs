@@ -24,5 +24,19 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 			} else
 				propertyInfo.SetValue(obj, val, null);
 		}
-	}
+
+        public static bool IsSubclassOfRawGeneric(this Type generic, Type toCheck)
+        {
+            while (toCheck != null && toCheck != typeof(object))
+            {
+                var cur = toCheck.GetTypeInfo().IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur)
+                {
+                    return true;
+                }
+                toCheck = toCheck.GetTypeInfo().BaseType;
+            }
+            return false;
+        }
+    }
 }
