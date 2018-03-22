@@ -481,8 +481,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
             foreach (PropertyInfo property in objectProperties)
             {
-                if (property.GetCustomAttribute<RelatedTableAttribute>() is RelatedTableAttribute relatedTable)
+                if (property.GetCustomAttribute<RelatedTableAttribute>() != null)
                 {
+                    var relatedTable = property.GetCustomAttribute<RelatedTableAttribute>();
                     var endType = property.PropertyType.GetTypeInfo().GenericTypeArguments[0];
                     var lazyType = typeof(DynamicLazy<>);
                     var constructed = lazyType.MakeGenericType(endType);
