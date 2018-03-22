@@ -24,8 +24,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 			} else
 				propertyInfo.SetValue(obj, val, null);
 		}
-
-        public static bool IsSubclassOfRawGeneric(this Type generic, Type toCheck)
+        
+        public static bool IsGenericOfType(this Type toCheck, Type generic)
         {
             while (toCheck != null && toCheck != typeof(object))
             {
