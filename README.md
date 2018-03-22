@@ -161,7 +161,7 @@ public class Model
 
  //Partition key must be specified explicitly, rowkey defaults to the name of the type (here: OtherModel)
  [RelatedTable("UserId")]
- public OtherModel OtherModelObject { get; set; } 
+ public Lazy<OtherModel> OtherModelObject { get; set; } 
 }
 ```
 It is possible to specify the rowkey explicitly:
@@ -193,6 +193,6 @@ public class Model
  public string OtherModelId { get; set; } 
 
  [RelatedTable(nameof(UUID), RowKey=nameof(OtherModelId))]
- public OtherModel OtherModel { get; set; } 
+ public Lazy<OtherModel> OtherModel { get; set; } 
 }
 ```
