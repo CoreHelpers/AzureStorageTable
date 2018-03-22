@@ -7,6 +7,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -414,10 +415,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// map all to the original models
 				List<T> result = new List<T>();
 				foreach (DynamicTableEntity<T> model in queryResult)
-					result.Add(model.Model);
+                {
+                    LoadRelatedTables(model);
+                    result.Add(model.Model);
+                }
 
-				// notify delegate
-				if (_delegate != null)
+                // notify delegate
+                if (_delegate != null)
 					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);
 
 				// done 
@@ -437,8 +441,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				throw e;
 			}
 		}
-		
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken nextToken = null) where T : new()
+
+        private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, int maxItems = 0, TableContinuationToken nextToken = null) where T : new()
 		{			
 			// query the first page
 			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, maxItems, nextToken);
@@ -470,5 +474,74 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, maxItems);
 		}
-	}
+        
+        private void LoadRelatedTables<T>(DynamicTableEntity<T> model) where T : new()
+        {
+            IEnumerable<PropertyInfo> objectProperties = model.Model.GetType().GetTypeInfo().GetProperties();
+
+            foreach (PropertyInfo property in objectProperties)
+            {
+                if (property.GetCustomAttribute<RelatedTableAttribute>() != null)
+                {
+                    var relatedTable = property.GetCustomAttribute<RelatedTableAttribute>();
+                    var endType = property.PropertyType.GetTypeInfo().GenericTypeArguments[0];
+                    var lazyType = typeof(DynamicLazy<>);
+                    var constructed = lazyType.MakeGenericType(endType);
+                    var queryMethodName = nameof(QueryAsync);
+
+                    string extPartition = relatedTable.PartitionKey;
+                    if (!string.IsNullOrWhiteSpace(extPartition))
+                    {
+                        var partitionProperty = objectProperties.Where((pi) => pi.Name == relatedTable.PartitionKey).FirstOrDefault();
+                        if (partitionProperty != null)
+                        {
+                            extPartition = partitionProperty.GetValue(model.Model).ToString();
+                        }
+                    }
+
+                    string extRowKey = relatedTable.RowKey;
+                    if (!string.IsNullOrWhiteSpace(extRowKey))
+                    {
+                        var rowkeyProperty = objectProperties.Where((pi) => pi.Name == relatedTable.PartitionKey).FirstOrDefault();
+                        if (rowkeyProperty != null)
+                        {
+                            extRowKey = rowkeyProperty.GetValue(model.Model).ToString();
+                        }
+                    }
+                    else
+                    {
+                        var rowkeyProperty = objectProperties.Where((pi) => pi.Name == endType.Name).FirstOrDefault();
+                        if (rowkeyProperty != null)
+                        {
+                            extRowKey = rowkeyProperty.GetValue(model.Model).ToString();
+                        }
+                    }
+
+                    var method = typeof(StorageContext).GetMethod(queryMethodName, new[] { typeof(string), typeof(string), typeof(int) });
+                    var generic = method.MakeGenericMethod(endType);
+                    
+                    if (property.PropertyType.IsGenericOfType(typeof(Lazy<>)))
+                    {
+
+                        object o = Activator.CreateInstance(constructed, new Func<object>(() =>
+                        {
+                            var waitable = (dynamic)generic.Invoke(this, new object[] { extPartition, extRowKey, 1 });
+                            var r = waitable.Result;
+
+                            return r;
+                        }));
+                        property.SetValue(model.Model, o);
+                    }
+                    else
+                    {
+
+                        var waitable = (dynamic)generic.Invoke(this, new object[] { extPartition, extRowKey, 1 });
+                        var r = waitable.Result;
+                        property.SetValue(model.Model, r);
+                    }
+                }
+            }
+        }
+
+    }
 }
