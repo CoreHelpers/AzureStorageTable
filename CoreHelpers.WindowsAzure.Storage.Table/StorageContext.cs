@@ -42,8 +42,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			
 			_storageAccount = CloudStorageAccount.Parse(connectionString);
 		}
-		
-		public StorageContext(StorageContext parentContext)
+
+        public StorageContext(string connectionString)
+        {
+            _storageAccount = CloudStorageAccount.Parse(connectionString);
+        }
+
+        public StorageContext(StorageContext parentContext)
 		{
 			_storageAccount = parentContext._storageAccount;
 			_entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
