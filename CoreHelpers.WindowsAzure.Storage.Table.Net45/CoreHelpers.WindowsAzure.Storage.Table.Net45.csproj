@@ -125,6 +125,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\PagedTableEntityWriter.cs">
       <Link>PagedTableEntityWriter.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\RelatedTableItem.cs">
+      <Link>RelatedTableItem.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContext.cs">
       <Link>StorageContext.cs</Link>
     </Compile>
