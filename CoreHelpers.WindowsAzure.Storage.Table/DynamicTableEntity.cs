@@ -124,9 +124,16 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			{
 				// Logger.LogInformational(operationContext, SR.TraceIgnoreAttribute, property.Name);
 				return true;
-			}
+            }
 
-			return false;
+            // properties with [RelatedTable]
+            if (property.GetCustomAttribute(typeof(RelatedTableAttribute)) != null)
+            {
+                // Logger.LogInformational(operationContext, SR.TraceIgnoreAttribute, property.Name);
+                return true;
+            }
+
+            return false;
 		}
 
 		private static IDictionary<string, EntityProperty> ReflectionWrite(object entity, OperationContext operationContext)

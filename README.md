@@ -142,3 +142,57 @@ public class JObjectModel
  public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
 }
 ```
+
+## Related tables
+It is possible to automatically load related tables, either lazily or eagerly. In order to load lazily simply pack the object in the `Lazy<>` type. 
+
+```csharp 
+[Storable(Tablename: "JObjectModel")]
+public class Model
+{
+ [PartitionKey]
+ [RowKey]
+ public string UUID { get; set; }
+
+ public string UserId {get; set; }
+ 
+ //This is the rowkey of the OtherModel
+ public string OtherModel { get; set; } 
+
+ //Partition key must be specified explicitly, rowkey defaults to the name of the type (here: OtherModel)
+ [RelatedTable("UserId")]
+ public Lazy<OtherModel> OtherModelObject { get; set; } 
+}
+```
+It is possible to specify the rowkey explicitly:
+```csharp 
+[Storable(Tablename: "JObjectModel")]
+public class Model
+{
+ [PartitionKey]
+ [RowKey]
+ public string UUID { get; set; }
+
+ public string UserId {get; set; }
+ 
+ public string OtherModelId { get; set; } 
+
+ [RelatedTable("UserId", RowKey="OtherModelId")]
+ public OtherModel OtherModel { get; set; } 
+}
+```
+If neither the rowkey or the partition key is the name of a property of the object they are used directly as strings, and obviously to reduce the possible causes of errors it is recommended to use the `nameof`: 
+```csharp 
+[Storable(Tablename: "Models")]
+public class Model
+{
+ [PartitionKey]
+ [RowKey]
+ public string UUID { get; set; }
+ 
+ public string OtherModelId { get; set; } 
+
+ [RelatedTable(nameof(UUID), RowKey=nameof(OtherModelId))]
+ public Lazy<OtherModel> OtherModel { get; set; } 
+}
+```
