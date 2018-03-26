@@ -77,6 +77,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Attributes\PartitionKeyAttribute.cs">
       <Link>Attributes\PartitionKeyAttribute.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Attributes\RelatedTableAttribute.cs">
+      <Link>Attributes\RelatedTableAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Attributes\RowKeyAttribute.cs">
       <Link>Attributes\RowKeyAttribute.cs</Link>
     </Compile>
@@ -101,6 +104,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Attributes\VirtualTypeAttribute.cs">
       <Link>Attributes\VirtualTypeAttribute.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\DynamicLazy.cs">
+      <Link>DynamicLazy.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\DynamicTableEntity.cs">
       <Link>DynamicTableEntity.cs</Link>
     </Compile>
@@ -116,8 +122,14 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Extensions\PropertyInfoSetValueFromEntityProperty.cs">
       <Link>Extensions\PropertyInfoSetValueFromEntityProperty.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Extensions\TableQueryEx.cs">
+      <Link>Extensions\TableQueryEx.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\PagedTableEntityWriter.cs">
       <Link>PagedTableEntityWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\RelatedTableItem.cs">
+      <Link>RelatedTableItem.cs</Link>
     </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContext.cs">
       <Link>StorageContext.cs</Link>
