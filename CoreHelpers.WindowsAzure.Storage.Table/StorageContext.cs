@@ -50,7 +50,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         }
 
         public StorageContext(StorageContext parentContext)
-
         {
             _storageAccount = parentContext._storageAccount;
             _entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
