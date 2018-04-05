@@ -12,36 +12,40 @@ using HandlebarsDotNet;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
-    public enum nStoreOperation
-    {
-        insertOperation,
-        insertOrReplaceOperation,
-        mergeOperation,
-        mergeOrInserOperation,
-        delete
-    }
+	public enum nStoreOperation {
+		insertOperation, 
+		insertOrReplaceOperation,
+		mergeOperation,
+		mergeOrInserOperation,
+		delete
+	}
 
-    public class QueryResult<T>
-    {
-        public IQueryable<T> Items { get; internal set; }
-        public TableContinuationToken NextToken { get; internal set; }
-    }
+	public class QueryResult<T>
+	{
+		public IQueryable<T> Items { get; internal set; }
+		public TableContinuationToken NextToken { get; internal set; }
+	}
+	
+	
+	
+	public class StorageContext : IDisposable
+	{		
+		    private CloudStorageAccount _storageAccount { get; set; }
+		    private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
+		    private bool _autoCreateTable { get; set; } = false;
+		    private IStorageContextDelegate _delegate { get; set; }
+		
+		    public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
+		    {
+			    var connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
+			    if (!String.IsNullOrEmpty(storageEndpointSuffix))
+				    connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
+			
+			    _storageAccount = CloudStorageAccount.Parse(connectionString);
+		    }
 
-
-
-    public class StorageContext : IDisposable
-    {
-        private CloudStorageAccount _storageAccount { get; set; }
-        private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
-        private bool _autoCreateTable { get; set; } = false;
-        private IStorageContextDelegate _delegate { get; set; }
-
-        public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
+        public StorageContext(string connectionString)
         {
-            var connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
-            if (!String.IsNullOrEmpty(storageEndpointSuffix))
-                connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
-
             _storageAccount = CloudStorageAccount.Parse(connectionString);
         }
 
