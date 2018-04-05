@@ -12,7 +12,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
             if (string.IsNullOrWhiteSpace(filterA))
                 return filterB;
 
-            return TableQuery.CombineFilters(filterA, operatorString, filterA);
+            return TableQuery.CombineFilters(filterA, operatorString, filterB);
         }
 
         public static string CombineFilters(IEnumerable<string> filters, string operatorString)
