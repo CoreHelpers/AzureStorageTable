@@ -7,6 +7,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using System.IO;
+using CoreHelpers.WindowsAzure.Storage.Table.Services;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -458,7 +460,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				return result.Items;					
 		}
 	
-		private CloudTable GetTableReference(string tableName) {
+		internal CloudTable GetTableReference(string tableName) {
 			
 			// create the table client 
 			var storageTableClient = _storageAccount.CreateCloudTableClient();
@@ -475,5 +477,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, maxItems);
 		}
+
+
+        public async Task Export(string tableName, TextWriter targetWriter)
+        {
+            var exporter = new DataExportService(this);
+            await exporter.Export(tableName, targetWriter);
+        }
 	}
 }

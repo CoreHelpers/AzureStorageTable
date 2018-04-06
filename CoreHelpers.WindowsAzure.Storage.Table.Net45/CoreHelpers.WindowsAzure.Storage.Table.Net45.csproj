@@ -134,6 +134,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\StorageContextQueryCursor.cs">
       <Link>StorageContextQueryCursor.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Services\DataExportService.cs">
+      <Link>Services\DataExportService.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

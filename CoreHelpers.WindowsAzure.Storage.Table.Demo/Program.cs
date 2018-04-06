@@ -24,7 +24,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			// register all demo cases
 			var cases = new List<IDemoCase>
 			{
-				new UC01StoreWithStaticEntityMapper(),
+				/*new UC01StoreWithStaticEntityMapper(),
 				new UC02StoreWithAttributeMapper(),
 				new UC03StoreWithAttributeMapperManualRegistration(),
 				new UC04GetVirtualArray(),
@@ -38,7 +38,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 new UC12PartialUpdateMergeModel(),
                 new UC13DynamicallyCreateList(),
                 new UC14WriteNullList(),
-                new UC15DynamicTableNameChange()
+                new UC15DynamicTableNameChange(),*/
+                new UC16Backup()
 			};
 			
 			// register demo cases for Ger Cloud
@@ -53,9 +54,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 				await useCase.Execute(config.GetValue("key").ToString(), config.GetValue("secret").ToString());									
 				
 			// execute in GER cloud 
-			Console.WriteLine("Executing Demo Cases (GER Cloud)");
+			/*Console.WriteLine("Executing Demo Cases (GER Cloud)");
 			foreach (var useCase in casesGer)
-				await useCase.Execute(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");													
+				await useCase.Execute(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");													*/
         }                            				
     }	
 }

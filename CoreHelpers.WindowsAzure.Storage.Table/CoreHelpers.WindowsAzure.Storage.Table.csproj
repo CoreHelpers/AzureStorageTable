@@ -14,5 +14,6 @@
     <Folder Include="Attributes\" />
     <Folder Include="Extensions\" />
     <Folder Include="Delegates\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 </Project>
