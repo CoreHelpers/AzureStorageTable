@@ -479,10 +479,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		}
 
 
-        public async Task Export(string tableName, TextWriter targetWriter)
+        public async Task Export(string tableName, TextWriter targetWriter, Action<int> progress)
         {
             var exporter = new DataExportService(this);
-            await exporter.Export(tableName, targetWriter);
+            await exporter.Export(tableName, targetWriter, progress);
         }
 	}
 }

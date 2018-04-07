@@ -27,7 +27,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
             this.storageContext = storageContext;
         }
 
-        public async Task Export(string tableName, TextWriter targetWriter) 
+        public async Task Export(string tableName, TextWriter targetWriter, Action<int> progress) 
         {
             // get a table reference 
             var table = storageContext.GetTableReference(tableName);
@@ -70,6 +70,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
                     // write the line into output
                     await targetWriter.WriteLineAsync(csvLine);
                 }
+
+                // progress
+                progress?.Invoke(queryResponse.Results.Count);
             }
             while (tableContinuationToken != null);
         }
