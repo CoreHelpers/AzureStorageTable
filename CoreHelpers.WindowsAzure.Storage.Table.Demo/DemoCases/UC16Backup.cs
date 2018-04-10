@@ -16,7 +16,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
             using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
             {
                 using(var textWriter = new StreamWriter("/tmp/test.csv")) {
-                    await storageContext.Export("ExportDemo", textWriter);    
+                    await storageContext.Export("ExportDemo", textWriter, null);    
                 }
 
             }

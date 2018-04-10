@@ -24,22 +24,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			// register all demo cases
 			var cases = new List<IDemoCase>
 			{
-				/*new UC01StoreWithStaticEntityMapper(),
-				new UC02StoreWithAttributeMapper(),
-				new UC03StoreWithAttributeMapperManualRegistration(),
-				new UC04GetVirtualArray(),
-				new UC05StoreAsJson(),
-				new UC06AutoCreateTable(),
-				new UC07CreateModelsPaged(),
-				new UC08CheckMaxItems(),
-				new UC09ReadInterfaceValues(),
-				new UC10CreateHugeAmountOfDemoEntries(),
-				new UC11ReadPageByPage(),
-                new UC12PartialUpdateMergeModel(),
-                new UC13DynamicallyCreateList(),
-                new UC14WriteNullList(),
-                new UC15DynamicTableNameChange(),*/
-                new UC16Backup()
+				// new UC01StoreWithStaticEntityMapper(),
+                // new UC02StoreWithAttributeMapper(),
+                // new UC03StoreWithAttributeMapperManualRegistration(),
+                // new UC04GetVirtualArray(),
+                // new UC05StoreAsJson(),
+                new UC06AutoCreateTable(),
+                // new UC07CreateModelsPaged(),
+                // new UC08CheckMaxItems(),
+                // new UC09ReadInterfaceValues(),
+                // new UC10CreateHugeAmountOfDemoEntries(),
+                // new UC11ReadPageByPage(),
+                // new UC12PartialUpdateMergeModel(),
+                // new UC13DynamicallyCreateList(),
+                // new UC14WriteNullList(),
+                // new UC15DynamicTableNameChange(),
+                // new UC16Backup()
 			};
 			
 			// register demo cases for Ger Cloud

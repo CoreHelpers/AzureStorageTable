@@ -435,13 +435,33 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				};
 				
 			} catch(Exception e) {
-			
-				// notify delegate
-				if (_delegate != null)
-					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);				
-				
-				// throw exception
-				throw e;
+
+                // check if we have autocreate
+                if (_autoCreateTable || e.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+                {
+
+                    // notify delegate
+                    if (_delegate != null)
+                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);
+
+                    // done
+                    return new QueryResult<T>()
+                    {
+                        Items = new List<T>().AsQueryable<T>(),
+                        NextToken = null
+                    };
+
+                }
+                else
+                {
+
+                    // notify delegate
+                    if (_delegate != null)
+                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);
+
+                    // throw exception
+                    throw e;
+                }
 			}
 		}
 		
