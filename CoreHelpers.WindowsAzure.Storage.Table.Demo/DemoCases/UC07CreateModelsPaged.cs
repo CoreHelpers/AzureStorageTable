@@ -31,15 +31,30 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 				// write data pages		
 				Console.WriteLine("Writing Models Paged");
                 var startDate = DateTime.Now;
-				
+
+
 				using (var pagedWriter = new PagedTableEntityWriter<UserModel2>(storageContext, nStoreOperation.insertOrReplaceOperation, 100))
-				{					
-					for (var i = 0; i < 1000; i++) 
+				{
+					var t1 = Task.Run(async () =>
 					{
-						var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = string.Format("em-{0}@acme.org", i) };
-						await pagedWriter.StoreAsync(user);
-					}
-				}
+						for (var i = 0; i < 500; i++)
+						{
+							var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = string.Format("em-{0}@acme.org", i) };
+							await pagedWriter.StoreAsync(user);
+						}
+					});
+
+					var t2 = Task.Run(async () =>
+					{
+						for (var i = 500; i < 1000; i++)
+    					{
+    						var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = string.Format("em-{0}@acme.org", i) };
+    						await pagedWriter.StoreAsync(user);
+    					}
+					});
+
+					Task.WaitAll(new Task[] { t1, t2 });
+				}                
 
 				var endDate = DateTime.Now;
 				

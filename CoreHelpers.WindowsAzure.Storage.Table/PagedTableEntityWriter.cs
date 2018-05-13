@@ -18,29 +18,35 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			_parentContext = parentContext;
 		}
 		
-		private async Task SyncModels() 
+		private async Task SyncModels(List<T> cacheToSync) 
 		{
 			// store
 			using(var context = new StorageContext(_parentContext)) 
 			{
-				await context.StoreAsync(_operation, _modelCache);
-			}
-
-			// clear the cache
-			_modelCache.Clear();
+				await context.StoreAsync(_operation, cacheToSync);
+			}            
 		}
 		
 		public async Task StoreAsync(IEnumerable<T> models) 
-		{			
-			// add to the list 
-			_modelCache.AddRange(models);
+		{
+			var cacheToSync = default(List<T>);
 
-			// check if we are above the page size 
-			if (_modelCache.Count >= _pageSize) 
+			lock (_modelCache)
 			{
-				// sync
-				await SyncModels();				
+				// add to the list 
+				_modelCache.AddRange(models);
+
+				// check if we are above the page size 
+				if (_modelCache.Count >= _pageSize)
+				{
+					cacheToSync = new List<T>(_modelCache);
+					_modelCache.Clear();
+				}
 			}
+                        
+			// sync
+			if (cacheToSync != null)
+				await SyncModels(cacheToSync);				
 		}
 		
 		public async Task StoreAsync(T model) 
@@ -50,10 +56,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		public void Dispose()
 		{
-			if (_modelCache.Count > 0) 
+			lock (_modelCache)
 			{
-				// sync
-				SyncModels().ConfigureAwait(false).GetAwaiter().GetResult();				
+				if (_modelCache.Count > 0)
+				{
+					// sync
+					SyncModels(new List<T>(_modelCache)).ConfigureAwait(false).GetAwaiter().GetResult();
+				}
 			}
 		}
 	}
