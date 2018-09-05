@@ -125,5 +125,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		/// The ODataProtocolVersion.
 		/// </summary>
 		internal static ODataVersion ODataProtocolVersion = ODataVersion.V3;
-	}
+
+        public const string PropertyName = "PropertyName";
+
+        public const string PropertyType = "PropertyType";
+
+        public const string PropertyValue = "PropertyValue";
+
+        public const string Properties = "Properties";
+    }
 }

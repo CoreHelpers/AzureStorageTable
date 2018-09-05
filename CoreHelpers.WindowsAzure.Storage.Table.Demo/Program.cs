@@ -30,7 +30,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC04GetVirtualArray(),
                 // new UC05StoreAsJson(),
                 // new UC06AutoCreateTable(),
-                 new UC07CreateModelsPaged(),
+                // new UC07CreateModelsPaged(),
                 // new UC08CheckMaxItems(),
                 // new UC09ReadInterfaceValues(),
                 // new UC10CreateHugeAmountOfDemoEntries(),
@@ -39,7 +39,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC13DynamicallyCreateList(),
                 // new UC14WriteNullList(),
                 // new UC15DynamicTableNameChange(),
-                // new UC16Backup()
+                new UC16Backup()
 			};
 			
 			// register demo cases for Ger Cloud

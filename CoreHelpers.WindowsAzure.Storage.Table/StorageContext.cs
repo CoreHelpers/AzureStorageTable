@@ -498,11 +498,37 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, maxItems);
 		}
 
+        public async Task<List<string>> QueryTableList() {
 
-        public async Task Export(string tableName, TextWriter targetWriter, Action<int> progress)
-        {
-            var exporter = new DataExportService(this);
-            await exporter.Export(tableName, targetWriter, progress);
+            var tables = new List<string>();
+
+            TableContinuationToken token = null;
+            do
+            {
+                var tableClient = _storageAccount.CreateCloudTableClient();
+                var segmentResult = await tableClient.ListTablesSegmentedAsync(token);
+                token = segmentResult.ContinuationToken;
+                tables.AddRange(segmentResult.Results.Select(t => t.Name));
+
+            } while (token != null);
+
+            return tables;
         }
-	}
+
+        public async Task ExportToJsonAsync(string tableName, TextWriter writer)
+        {
+            var logsTable = GetTableReference(DataExportService.TableName);
+            await logsTable.CreateIfNotExistsAsync();
+            var exporter = new DataExportService(this);
+            await exporter.ExportToJson(tableName, writer);
+        }
+
+        public async Task ImportFromJsonAsync(string tableName, string json)
+        {
+            var logsTable = GetTableReference(DataImportService.TableName);
+            await logsTable.CreateIfNotExistsAsync();
+            var importer = new DataImportService(this);
+            await importer.ImportFromJsonAsync(tableName, json, _delegate);
+        }
+    }
 }

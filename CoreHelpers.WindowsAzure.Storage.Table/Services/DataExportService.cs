@@ -1,80 +1,99 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage.Table;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Table;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Services
 {
-    internal static class DataExportServiceStringExtension {
-        
-        public static string AddCsvElement(this string csvLine, string propertyName, string propertyType, string propertyValue)
-        {
-            if (!String.IsNullOrEmpty(csvLine) && !csvLine.EndsWith(",", StringComparison.CurrentCulture))
-                csvLine += ",";
-
-            csvLine = $"{csvLine}\"{propertyName}\",\"{propertyType}\",\"{propertyValue}\"";
-
-            return csvLine;
-        }
-    }
-
-    public class DataExportService
+    internal class DataExportService : DataService
     {
-        private StorageContext storageContext { get; set; }
+        public const string TableName = "TableExportLogs";
 
-        public DataExportService(StorageContext storageContext)
+        public DataExportService(StorageContext storageContext) : base(storageContext)
         {
-            this.storageContext = storageContext;
         }
 
-        public async Task Export(string tableName, TextWriter targetWriter, Action<int> progress) 
+        public async Task ExportToJson(string tableName, TextWriter writer, Action<int> progress = null)
         {
-            // get a table reference 
-            var table = storageContext.GetTableReference(tableName);
-
-            // verify if table exists
-            var existsTable = await table.ExistsAsync();
-            if (!existsTable)
-                throw new FileNotFoundException($"Table {tableName} does not exist");
-
-            // prepare the table query
-            var tableQuery = new TableQuery();
-
-            TableContinuationToken tableContinuationToken = null;
-            do
+            try
             {
-                // do the query of the first page
-                var queryResponse = await table.ExecuteQuerySegmentedAsync(tableQuery, tableContinuationToken, null, null);
+                var tableData = new List<DynamicTableEntity>();
+                // await LogInformationAsync($"Started exporting table '{tableName}'");
+                var table = storageContext.GetTableReference(tableName);
 
-                // set the continouation token
-                tableContinuationToken = queryResponse.ContinuationToken;
-
-                // genenerate for every single item a valid file structure
-                // "<<PropertyName>>","<<Type>>","<<Value>>",....
-                foreach (var element in queryResponse.Results)
+                var existsTable = await table.ExistsAsync();
+                if (!existsTable)
                 {
+                    var message = $"Table '{tableName}' does not exist";
+                    // await LogErrorAsync(message);
+                    throw new FileNotFoundException(message);
+                }
+                // await LogInformationAsync($"Found table '{tableName}'");
 
-                    // basic string 
-                    var csvLine = String.Empty;
+                var tableQuery = new TableQuery<DynamicTableEntity>();
+                TableContinuationToken tableContinuationToken = null;
+                var querySegmentIndex = 0;
+                // await LogInformationAsync($"Starting to process '{tableName}' data");
 
-                    // generate the partition and rowKey
-                    csvLine = csvLine.AddCsvElement("PartitionKey", "String", element.PartitionKey);
-                    csvLine = csvLine.AddCsvElement("RowKey", "String", element.RowKey);
+                JsonWriter wr = new JsonTextWriter(writer);
 
-                    // visit every property
-                    foreach(var propertyKvp in element.Properties) {
-                        var stringRepresentation = Convert.ToString(propertyKvp.Value.PropertyAsObject);
-                        csvLine = csvLine.AddCsvElement(propertyKvp.Key, propertyKvp.Value.PropertyType.ToString(), stringRepresentation);
+                do
+                {
+                    //await LogInformationAsync($"Reading segment '{querySegmentIndex}' of '{tableName}'");
+                    var queryResponse = await table.ExecuteQuerySegmentedAsync(tableQuery, tableContinuationToken, null, null);
+                    var queryResponseEntitiesCount = queryResponse.Results.Count;
+                    // await LogInformationAsync($"Got segment '{querySegmentIndex}' of '{tableName}' with {queryResponseEntitiesCount} entities");
+                    
+                    tableData.AddRange(queryResponse.Results.ToList());
+
+                    tableContinuationToken = queryResponse.ContinuationToken;
+                    
+                    // await LogInformationAsync($"Written segment '{querySegmentIndex}' of '{tableName}' to target writer");
+                    ++querySegmentIndex;
+                    progress?.Invoke(queryResponseEntitiesCount);
+                }
+                while (tableContinuationToken != null);
+
+                var linesProcessed = 0;
+                wr.WriteStartArray();
+                foreach (var entity in tableData)
+                {
+                    wr.WriteStartObject();
+                    wr.WritePropertyName(TableConstants.RowKey);
+                    wr.WriteValue(entity.RowKey);
+                    wr.WritePropertyName(TableConstants.PartitionKey);
+                    wr.WriteValue(entity.PartitionKey);
+                    wr.WritePropertyName(TableConstants.Properties);
+                    wr.WriteStartArray();
+                    foreach (var propertyKvp in entity.Properties)
+                    {
+                        wr.WriteStartObject();
+                        wr.WritePropertyName(TableConstants.PropertyName);
+                        wr.WriteValue(propertyKvp.Key);
+                        wr.WritePropertyName(TableConstants.PropertyType);
+                        wr.WriteValue(propertyKvp.Value.PropertyType);
+                        wr.WritePropertyName(TableConstants.PropertyValue);
+                        wr.WriteValue(GetPropertyValue(propertyKvp.Value.PropertyType, propertyKvp.Value));
+                        wr.WriteEndObject();
                     }
-
-                    // write the line into output
-                    await targetWriter.WriteLineAsync(csvLine);
+                    wr.WriteEnd();
+                    wr.WriteEndObject();
+                    ++linesProcessed;
                 }
 
-                // progress
-                progress?.Invoke(queryResponse.Results.Count);
+                wr.WriteEnd();
+                wr.Flush();
+
+                // await LogInformationAsync($"Finished writing '{tableName}' with '{linesProcessed}' lines of data");
             }
-            while (tableContinuationToken != null);
+            catch (Exception e)
+            {
+                // await LogErrorAsync($"Error when exporting '{tableName}': {e.ToString()}");
+                throw e;
+            }
         }
     }
 }
