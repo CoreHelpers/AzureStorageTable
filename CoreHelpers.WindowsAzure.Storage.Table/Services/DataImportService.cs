@@ -110,7 +110,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
             }
             catch (StorageException ex) when (ex.RequestInformation.HttpStatusCode == 409)
             {
-                await Task.Delay(20_000);
+                await Task.Delay(20000);
                 await CreateAzureTableAsync(table);
             }
             catch (Exception e)
