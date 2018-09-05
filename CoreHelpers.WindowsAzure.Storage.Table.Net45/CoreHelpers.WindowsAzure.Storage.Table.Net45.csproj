@@ -137,6 +137,27 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Services\DataExportService.cs">
       <Link>Services\DataExportService.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Models\ImportExportTableEntity.cs">
+      <Link>Models\ImportExportTableEntity.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Models\ImportExportTableProperty.cs">
+      <Link>Models\ImportExportTableProperty.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Services\DataImportService.cs">
+      <Link>Services\DataImportService.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Services\DataService.cs">
+      <Link>Services\DataService.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\BackupService.cs">
+      <Link>BackupService.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\DefaultStorageLogger.cs">
+      <Link>DefaultStorageLogger.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\IStorageLogger.cs">
+      <Link>IStorageLogger.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

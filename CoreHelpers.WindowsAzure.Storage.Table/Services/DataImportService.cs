@@ -22,7 +22,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
         {
             try
             {
-                var entitiesToBeRetored = await ParseTableEntities(json);
+                var entitiesToBeRetored = ParseTableEntities(json);
                 await RestoreAsync(tableName, entitiesToBeRetored, storageContext, _delegate);
             }
             catch (Exception e)
@@ -31,9 +31,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
             }
         }
 
-        public async Task<IEnumerable<DynamicTableEntity>> ParseTableEntities(string json)
+        public IEnumerable<DynamicTableEntity> ParseTableEntities(string json)
         {
-            await Task.CompletedTask;
             var tableModels = JsonConvert.DeserializeObject<List<ImportExportTableEntity>>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
             var entities = tableModels.AsParallel().Select(GetTableEntity).ToList();
             return entities;
