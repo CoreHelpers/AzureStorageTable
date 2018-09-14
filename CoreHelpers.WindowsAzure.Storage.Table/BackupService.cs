@@ -67,7 +67,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                         {
                             using (var contentWriter = new StreamWriter(compressionStream))
                             {
-                                await dataExportService.ExportToJson(tableName, contentWriter);
+                                var pageCounter = 0;
+                                await dataExportService.ExportToJson(tableName, contentWriter, (c) => {
+                                    pageCounter++;
+                                    storageLogger.LogInformation($"  Processing page #{pageCounter} with #{c} items...");
+                                });
                             }
                         }
                     }
@@ -75,7 +79,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                     {
                         using (var contentWriter = new StreamWriter(backupFileStream))
                         {
-                            await dataExportService.ExportToJson(tableName, contentWriter);
+                            var pageCounter = 0;
+                            await dataExportService.ExportToJson(tableName, contentWriter, (c) => {
+                                pageCounter++;
+                                storageLogger.LogInformation($"  Processing page #{pageCounter} with #{c} items...");
+                            });
                         }
                     }
                 }
