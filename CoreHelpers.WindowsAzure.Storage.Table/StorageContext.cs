@@ -523,12 +523,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             await exporter.ExportToJson(tableName, writer);
         }
 
-        public async Task ImportFromJsonAsync(string tableName, string json)
+        public async Task ImportFromJsonAsync(string tableName, StreamReader reader) 
         {
             var logsTable = GetTableReference(DataImportService.TableName);
             await logsTable.CreateIfNotExistsAsync();
             var importer = new DataImportService(this);
-            await importer.ImportFromJsonAsync(tableName, json, _delegate);
+            await importer.ImportFromJsonStreamAsync(tableName, reader);
         }
     }
 }

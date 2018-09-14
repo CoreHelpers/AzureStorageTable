@@ -4,6 +4,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,24 +19,57 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
         {
         }
 
-        public async Task ImportFromJsonAsync(string tableName, string json, IStorageContextDelegate _delegate = null)
-        {
-            try
-            {
-                var entitiesToBeRetored = ParseTableEntities(json);
-                await RestoreAsync(tableName, entitiesToBeRetored, storageContext, _delegate);
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-        }
+        public async Task ImportFromJsonStreamAsync(string tableName, StreamReader streamReader, Action<int> progress = null) {
 
-        public IEnumerable<DynamicTableEntity> ParseTableEntities(string json)
-        {
-            var tableModels = JsonConvert.DeserializeObject<List<ImportExportTableEntity>>(json, new JsonSerializerSettings { DateTimeZoneHandling = DateTimeZoneHandling.Utc });
-            var entities = tableModels.AsParallel().Select(GetTableEntity).ToList();
-            return entities;
+            // ensure table exists
+            var targetTable = storageContext.GetTableReference(tableName);
+            if (!await targetTable.ExistsAsync())
+                await CreateAzureTableAsync(targetTable);
+                
+            // store the entities by partition key
+            var entityStore = new Dictionary<string, List<DynamicTableEntity>>();
+
+            // parse
+            JsonSerializer serializer = new JsonSerializer();
+            using (JsonReader reader = new JsonTextReader(streamReader))
+            {
+                while (reader.Read())
+                {
+                    // deserialize only when there's "{" character in the stream
+                    if (reader.TokenType == JsonToken.StartObject)
+                    {
+                        // get the data model 
+                        var currentModel = serializer.Deserialize<ImportExportTableEntity>(reader);
+
+                        // convert to table entity
+                        var tableEntity = GetTableEntity(currentModel);
+
+                        // add to the right store
+                        if (!entityStore.ContainsKey(tableEntity.PartitionKey))
+                            entityStore.Add(tableEntity.PartitionKey, new List<DynamicTableEntity>());
+
+                        // add the entity 
+                        entityStore[tableEntity.PartitionKey].Add(tableEntity);
+
+                        // check if we need to offload this table 
+                        if (entityStore[tableEntity.PartitionKey].Count == 100) {
+
+                            // restoring
+                            await RestorePageAsync(targetTable, entityStore[tableEntity.PartitionKey], progress);
+
+                            // clear
+                            entityStore.Remove(tableEntity.PartitionKey);
+                        }
+                    }
+                }
+
+                // post processing
+                foreach(var kvp in entityStore) {
+
+                    // restoring
+                    await RestorePageAsync(targetTable, kvp.Value, progress);
+                }
+            }
         }
 
         private DynamicTableEntity GetTableEntity(ImportExportTableEntity data)
@@ -54,52 +88,24 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
             return azureEntity;
         }
 
-        public async Task RestoreAsync(string tableName, IEnumerable<DynamicTableEntity> models, StorageContext storageContext, IStorageContextDelegate _delegate)
+        private async Task RestorePageAsync(CloudTable tableReference, IEnumerable<DynamicTableEntity> models, Action<int> progress)
         {
-            // get a table reference
-            var table = storageContext.GetTableReference(tableName);
+            // check that the list is small enough 
+            if (models.Count() > TableConstants.TableServiceBatchMaximumOperations)
+                throw new Exception("Entity Page is to big");
 
-            // verify if table exists
-            var existsTable = await table.ExistsAsync();
-
-            if (existsTable)
-            {
-                await table.DeleteIfExistsAsync();
-                table = storageContext.GetTableReference(tableName);
-            }
-            await CreateAzureTableAsync(table);
-
-            // Create the batch operation.
-            List<TableBatchOperation> batchOperations = new List<TableBatchOperation>();
-
-            // Create the first batch
+            // Create the batch
             var currentBatch = new TableBatchOperation();
-            batchOperations.Add(currentBatch);
 
-            // define the modelcounter
-            int modelCounter = 0;
-
+            // add models
             foreach (var entity in models)
-            {
-                currentBatch.Insert(entity);
+                currentBatch.InsertOrReplace(entity);
 
-                modelCounter++;
+            // notify
+            progress?.Invoke(currentBatch.Count);
 
-                if (modelCounter % TableConstants.TableServiceBatchMaximumOperations == 0)
-                {
-                    currentBatch = new TableBatchOperation();
-                    batchOperations.Add(currentBatch);
-                }
-            }
-            if (batchOperations.Any())
-            {
-                var tasks = batchOperations.Select(async bo =>
-                {
-                    await table.ExecuteBatchAsync(bo);
-                    _delegate?.OnStored(typeof(DynamicTableEntity), nStoreOperation.insertOperation, bo.Count, null);
-                });
-                await Task.WhenAll(tasks);
-            }
+            // insert
+            await tableReference.ExecuteBatchAsync(currentBatch);
         }
 
         private async Task CreateAzureTableAsync(CloudTable table)

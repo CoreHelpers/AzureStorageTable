@@ -39,8 +39,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC13DynamicallyCreateList(),
                 // new UC14WriteNullList(),
                 // new UC15DynamicTableNameChange(),
-                new UC16Backup()
-			};
+                // new UC16Backup()
+                new UC17Restore()
+            };
 			
 			// register demo cases for Ger Cloud
 			var casesGer = new List<IDemoCase>

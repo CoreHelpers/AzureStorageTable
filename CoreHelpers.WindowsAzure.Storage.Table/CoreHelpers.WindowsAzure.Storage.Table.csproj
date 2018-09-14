@@ -16,5 +16,6 @@
     <Folder Include="Extensions\" />
     <Folder Include="Delegates\" />
     <Folder Include="Services\" />
+    <Folder Include="Internal\" />
   </ItemGroup>
 </Project>
