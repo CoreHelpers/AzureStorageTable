@@ -41,6 +41,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
                         // get the data model 
                         var currentModel = serializer.Deserialize<ImportExportTableEntity>(reader);
 
+                        foreach(var property in currentModel.Properties) {
+                            if ((EdmType)property.PropertyType == EdmType.String && property.PropertyValue is DateTime) {
+                                property.PropertyValue = ((DateTime)property.PropertyValue).ToString("o");
+                            }
+                        }
                         // convert to table entity
                         var tableEntity = GetTableEntity(currentModel);
 
