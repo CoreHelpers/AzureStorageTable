@@ -158,6 +158,12 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\IStorageLogger.cs">
       <Link>IStorageLogger.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Internal\ZippedStreamReader.cs">
+      <Link>Internal\ZippedStreamReader.cs</Link>
+    </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Internal\ZippedStreamWriter.cs">
+      <Link>Internal\ZippedStreamWriter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
