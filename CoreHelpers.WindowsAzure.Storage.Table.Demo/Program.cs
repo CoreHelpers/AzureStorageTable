@@ -21,9 +21,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			var configLocation = Path.Combine("..", "Credentials.json");
 			JObject config = (JObject)JsonConvert.DeserializeObject(File.ReadAllText(configLocation));
 
-			// register all demo cases
-			var cases = new List<IDemoCase>
-			{
+            // register all demo cases
+            var cases = new List<IDemoCase>
+            {
 				// new UC01StoreWithStaticEntityMapper(),
                 // new UC02StoreWithAttributeMapper(),
                 // new UC03StoreWithAttributeMapperManualRegistration(),
@@ -38,9 +38,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC12PartialUpdateMergeModel(),
                 // new UC13DynamicallyCreateList(),
                 // new UC14WriteNullList(),
-                // new UC15DynamicTableNameChange(),
+                new UC15DynamicTableNameChange(),
                 // new UC16Backup()
-                new UC17Restore()
+                // new UC17Restore()
+                // new UC18DateTime()
             };
 			
 			// register demo cases for Ger Cloud

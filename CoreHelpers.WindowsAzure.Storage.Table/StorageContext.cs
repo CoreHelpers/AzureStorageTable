@@ -51,8 +51,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         public StorageContext(StorageContext parentContext)
 		{
+            // we reference the storage account
 			_storageAccount = parentContext._storageAccount;
-			_entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
+			
+            // we reference the entity mapper
+            _entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
+
+            // we are using the delegate
 			this.SetDelegate(parentContext._delegate);
 		}
 
@@ -166,7 +171,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         public void OverrideTableName(Type entityType, string tableName)
         {
             if (_entityMapperRegistry.ContainsKey(entityType))
-                _entityMapperRegistry[entityType].TableName = tableName;
+            {
+                // copy the mapper entry becasue it could be referenced 
+                // from parent context
+                var duplicatedMapper = new DynamicTableEntityMapper(_entityMapperRegistry[entityType]);
+
+                // override the table name
+                duplicatedMapper.TableName = tableName;
+
+                // re-register
+                _entityMapperRegistry[entityType] = duplicatedMapper;
+            }
         }
         
         public Task CreateTableAsync(Type entityType, bool ignoreErrorIfExists = true) 

@@ -25,31 +25,34 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
             Console.WriteLine("");
             Console.WriteLine(this.GetType().FullName);
 
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContextParent = new StorageContext(storageKey, storageSecret, endpointSuffix))
             {
-                // create model with data in list
-                var model = new DemoModel2() { P = "1", R = "2"};
+                using (var storageContext = new StorageContext(storageContextParent))
+                {
+                    // create model with data in list
+                    var model = new DemoModel2() { P = "1", R = "2" };
 
-                // ensure we are using the attributes
-                Console.WriteLine("Configuring Entity Mappers");
-                storageContext.AddAttributeMapper(typeof(DemoModel2), "MT1");
+                    // ensure we are using the attributes
+                    Console.WriteLine("Configuring Entity Mappers");
+                    storageContext.AddAttributeMapper(typeof(DemoModel2), "MT1");
 
-                // inser the model
-                Console.WriteLine("Insert Models");
-                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoModel2>(new List<DemoModel2>() { model });
+                    // inser the model
+                    Console.WriteLine("Insert Models");
+                    await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoModel2>(new List<DemoModel2>() { model });
 
-                // change table name
-                Console.WriteLine("Update Table Name");
-                storageContext.OverrideTableName<DemoModel2>("MT2");
+                    // change table name
+                    Console.WriteLine("Update Table Name");
+                    storageContext.OverrideTableName<DemoModel2>("MT2");
 
-                // inser the model
-                Console.WriteLine("Insert Models");
-                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoModel2>(new List<DemoModel2>() { model });
+                    // inser the model
+                    Console.WriteLine("Insert Models");
+                    await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoModel2>(new List<DemoModel2>() { model });
 
-                // cear table 
-                await storageContext.DropTableAsync<DemoModel2>();
-                storageContext.OverrideTableName<DemoModel2>("MT1");
-                await storageContext.DropTableAsync<DemoModel2>();
+                    // cear table 
+                    await storageContext.DropTableAsync<DemoModel2>();
+                    storageContext.OverrideTableName<DemoModel2>("MT1");
+                    await storageContext.DropTableAsync<DemoModel2>();
+                }
             }
         }
     }
