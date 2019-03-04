@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -30,10 +31,18 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             this.storageLogger = storageLogger;
         }
 
-        public async Task Backup(string containerName, string targetPath, string tableNamePrefix = null, bool compress = true)
+        public async Task Backup(string containerName, string targetPath, string[] excludedTables = null, string tableNamePrefix = null, bool compress = true)
         {
             // log 
             storageLogger.LogInformation($"Starting backup procedure...");
+
+            // generate the excludeTables
+            var excludedTablesList = new List<string>();
+            if (excludedTables != null)
+            {
+                foreach (var tbl in excludedTables)
+                    excludedTablesList.Add(tbl.ToLower());
+            }
 
             // get all tables 
             var tables = await tableStorageContext.QueryTableList();
@@ -67,6 +76,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                         storageLogger.LogInformation($"Processing table {tableName}...");
                     }
 
+                    // excluded tables
+                    if (excludedTablesList.Contains(tableName.ToLower())) 
+                    {
+                        storageLogger.LogInformation($"Ignoring table {tableName} (is part of excluded tables)...");
+                        continue;
+                    }
+
+                    // check the excluded tables
                     // do the backup
                     var fileName = $"{tableName}.json";
                     if (!string.IsNullOrEmpty(targetPath)) { fileName = $"{targetPath}/{fileName}"; }
