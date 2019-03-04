@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -44,43 +45,64 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             storageLogger.LogInformation($"Creating target container {containerName} if needed");
             await backupContainer.CreateIfNotExistsAsync();
 
-            // visit every table
-            foreach (var tableName in tables)
+            // prepare the memory stats file
+            var memoryStatsFile = $"{Path.GetTempFileName()}.csv";
+            using (var statsFile = new StreamWriter(memoryStatsFile))
             {
-                // filter the table prefix
-                if (!String.IsNullOrEmpty(tableNamePrefix) && !tableName.StartsWith(tableNamePrefix, StringComparison.CurrentCulture))
+                // use the statfile
+                storageLogger.LogInformation($"Statsfile is under {memoryStatsFile}...");
+                statsFile.WriteLine($"TableName,PageCounter,ItemCount,MemoryFootprint");
+
+                // visit every table
+                foreach (var tableName in tables)
                 {
-                    storageLogger.LogInformation($"Ignoring table {tableName}...");
-                    continue;
-                } else {
-                    storageLogger.LogInformation($"Processing table {tableName}...");
-                }
-
-                // do the backup
-                var fileName = $"{tableName}.json";
-                if (!string.IsNullOrEmpty(targetPath)) { fileName = $"{targetPath}/{fileName}"; }
-                if (compress) { fileName += ".gz"; }
-
-                // open block blog reference
-                var blockBlob = backupContainer.GetBlockBlobReference(fileName);
-
-                // open the file stream 
-                if (compress)
-                    storageLogger.LogInformation($"Writing backup to compressed file");
-                else
-                    storageLogger.LogInformation($"Writing backup to non compressed file");
-
-                // do it
-                using (var backupFileStream = await blockBlob.OpenWriteAsync())
-                {
-                    using (var contentWriter = new ZippedStreamWriter(backupFileStream,compress))
+                    // filter the table prefix
+                    if (!String.IsNullOrEmpty(tableNamePrefix) && !tableName.StartsWith(tableNamePrefix, StringComparison.CurrentCulture))
                     {
-                        var pageCounter = 0;
-                        await dataExportService.ExportToJson(tableName, contentWriter, (c) => {
-                            pageCounter++;
-                            storageLogger.LogInformation($"  Processing page #{pageCounter} with #{c} items...");
-                        });
+                        storageLogger.LogInformation($"Ignoring table {tableName}...");
+                        continue;
                     }
+                    else
+                    {
+                        storageLogger.LogInformation($"Processing table {tableName}...");
+                    }
+
+                    // do the backup
+                    var fileName = $"{tableName}.json";
+                    if (!string.IsNullOrEmpty(targetPath)) { fileName = $"{targetPath}/{fileName}"; }
+                    if (compress) { fileName += ".gz"; }
+
+                    // open block blog reference
+                    var blockBlob = backupContainer.GetBlockBlobReference(fileName);
+
+                    // open the file stream 
+                    if (compress)
+                        storageLogger.LogInformation($"Writing backup to compressed file");
+                    else
+                        storageLogger.LogInformation($"Writing backup to non compressed file");
+
+                    // do it
+
+                    using (var backupFileStream = await blockBlob.OpenWriteAsync())
+                    {
+                        using (var contentWriter = new ZippedStreamWriter(backupFileStream, compress))
+                        {
+                            var pageCounter = 0;
+                            await dataExportService.ExportToJson(tableName, contentWriter, (c) =>
+                            {
+                                pageCounter++;
+                                storageLogger.LogInformation($"  Processing page #{pageCounter} with #{c} items...");
+                                statsFile.WriteLine($"{tableName},{pageCounter},{c},{Process.GetCurrentProcess().WorkingSet64}");
+                            });
+                        }
+                    }
+
+                    // ensure we clean up the memory beause sometimes 
+                    // we have to much referenced data
+                    GC.Collect();
+
+                    // flush the statfile 
+                    await statsFile.FlushAsync();
                 }
             }
         }
