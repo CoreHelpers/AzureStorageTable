@@ -10,8 +10,8 @@
     <description>This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity from ITableEntity or TableEntity looks like a step backwards. The current implementation is intended to be an abstraction to store every existing entity into Azure Table Store.</description>
     <tags>poco dotnet-core dotnet azure azure-storage azure-table-storage</tags>
     <dependencies>
-      <group targetFramework=".NETStandard1.6">
-        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="NETStandard.Library" version="2.0.3" exclude="Build,Analyzers" />
         <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
         <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
         <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
@@ -24,7 +24,7 @@
     </dependencies>
   </metadata>
   <files>
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard1.6\CoreHelpers*.dll" target="lib\netstandard1.6" />    
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard1.6\CoreHelpers*.dll" target="lib\netstandard2.0" />    
   	<file src="CoreHelpers.WindowsAzure.Storage.Table.net45\bin\Release\net45\CoreHelpers*.dll" target="lib\net45" />   
   </files>
 </package>
