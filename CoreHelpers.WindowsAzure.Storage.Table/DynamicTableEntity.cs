@@ -33,13 +33,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		public string ETag { get; set; }
 
         public string PartitionKey {
-            get => GetTableStorageDefaultProperty<string>(_entityMapper.PartitionKeyFormat);
-            set => SetTableStorageDefaultProperty<string, PartitionKeyAttribute>(value);
+            get { return GetTableStorageDefaultProperty<string>(_entityMapper.PartitionKeyFormat); }
+            set { SetTableStorageDefaultProperty<string, PartitionKeyAttribute>(value); }
         }
 
         public string RowKey {
-            get => GetTableStorageDefaultProperty<string>(_entityMapper.RowKeyFormat);
-            set => SetTableStorageDefaultProperty<string, RowKeyAttribute>(value);
+            get { return GetTableStorageDefaultProperty<string>(_entityMapper.RowKeyFormat); }
+            set { SetTableStorageDefaultProperty<string, RowKeyAttribute>(value); }
         }
 
         private S GetTableStorageDefaultProperty<S>(string format) where S : class
