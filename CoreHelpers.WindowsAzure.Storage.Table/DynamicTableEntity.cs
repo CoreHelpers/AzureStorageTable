@@ -34,12 +34,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         public string PartitionKey {
             get => GetTableStorageDefaultProperty<string>(_entityMapper.PartitionKeyFormat);
-            set => SetTableStorageDefaultProperty(value, _entityMapper.PartitionKeyFormat);
+            set => SetTableStorageDefaultProperty<string, PartitionKeyAttribute>(value);
         }
 
         public string RowKey {
             get => GetTableStorageDefaultProperty<string>(_entityMapper.RowKeyFormat);
-            set => SetTableStorageDefaultProperty(value, _entityMapper.RowKeyFormat);
+            set => SetTableStorageDefaultProperty<string, RowKeyAttribute>(value);
         }
 
         private S GetTableStorageDefaultProperty<S>(string format) where S : class
@@ -56,17 +56,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
         }
 
-        private void SetTableStorageDefaultProperty<S>(S value, string format)
+        private void SetTableStorageDefaultProperty<S, A>(S value) where A : Attribute
         {
-            if (!(format.Contains("{{") && format.Contains("}}")))
+            foreach (var property in _srcModel.GetType()?.GetRuntimeProperties())
             {
-                var propertyInfo = _srcModel.GetType().GetRuntimeProperty(format);
-                // Only do this if we explicitly ignore the property from the other read methods
-                if (propertyInfo?.GetCustomAttribute(typeof(IgnorePropertyAttribute)) != null)
+                if (property.GetCustomAttribute<A>() != null && property?.GetCustomAttribute<IgnorePropertyAttribute>() != null)
                 {
-                    var setter = propertyInfo.GetSetMethod();
+                    var setter = property.GetSetMethod();
                     if (setter != null && !setter.IsStatic)
-                        propertyInfo.SetValue(_srcModel, value);
+                        property.SetValue(_srcModel, value);
                 }
             }
         }
