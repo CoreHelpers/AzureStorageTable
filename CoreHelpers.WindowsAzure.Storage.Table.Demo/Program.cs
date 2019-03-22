@@ -24,7 +24,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             // register all demo cases
             var cases = new List<IDemoCase>
             {
-				// new UC01StoreWithStaticEntityMapper(),
+                /new UC01StoreWithStaticEntityMapper(),
                 // new UC02StoreWithAttributeMapper(),
                 // new UC03StoreWithAttributeMapperManualRegistration(),
                 // new UC04GetVirtualArray(),
@@ -38,10 +38,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC12PartialUpdateMergeModel(),
                 // new UC13DynamicallyCreateList(),
                 // new UC14WriteNullList(),
-                new UC15DynamicTableNameChange(),
+                // new UC15DynamicTableNameChange(),
                 // new UC16Backup()
                 // new UC17Restore()
                 // new UC18DateTime()
+                new UC19QueryFilter()
             };
 			
 			// register demo cases for Ger Cloud

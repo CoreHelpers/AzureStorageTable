@@ -164,6 +164,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Internal\ZippedStreamWriter.cs">
       <Link>Internal\ZippedStreamWriter.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Models\QueryFilter.cs">
+      <Link>Models\QueryFilter.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
