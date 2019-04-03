@@ -323,39 +323,48 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// define the modelcounter
 				int modelCounter = 0;
 
+                // batch operations must be in the same partition
+                var partitions = models.Select(m => new DynamicTableEntity<T>(m, entityMapper)).GroupBy(m => m.PartitionKey);
+
 				// Add all items
-				foreach (var model in models)
-				{
-					switch (storaeOperationType)
-					{
-						case nStoreOperation.insertOperation:
-							currentBatch.Insert(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.insertOrReplaceOperation:
-							currentBatch.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.mergeOperation:
-							currentBatch.Merge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.mergeOrInserOperation:
-							currentBatch.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.delete: 
-							currentBatch.Delete(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-					}
+                foreach (var partition in partitions)
+                {
+                    currentBatch = new TableBatchOperation();
+                    batchOperations.Add(currentBatch);
 
-					modelCounter++;
+                    foreach (var dynamicEntity in partition)
+                    {
+                        switch (storaeOperationType)
+                        {
+                            case nStoreOperation.insertOperation:
+                                currentBatch.Insert(dynamicEntity);
+                                break;
+                            case nStoreOperation.insertOrReplaceOperation:
+                                currentBatch.InsertOrReplace(dynamicEntity);
+                                break;
+                            case nStoreOperation.mergeOperation:
+                                currentBatch.Merge(dynamicEntity);
+                                break;
+                            case nStoreOperation.mergeOrInserOperation:
+                                currentBatch.InsertOrMerge(dynamicEntity);
+                                break;
+                            case nStoreOperation.delete:
+                                currentBatch.Delete(dynamicEntity);
+                                break;
+                        }
 
-					if (modelCounter % 100 == 0)
-					{
-						currentBatch = new TableBatchOperation();
-						batchOperations.Add(currentBatch);
-					}
-				}
+                        modelCounter++;
 
-				// execute 
-				foreach (var createdBatch in batchOperations)
+                        if (modelCounter % 100 == 0)
+                        {
+                            currentBatch = new TableBatchOperation();
+                            batchOperations.Add(currentBatch);
+                        }
+                    }
+                }
+
+                // execute 
+                foreach (var createdBatch in batchOperations)
 				{
 					if (createdBatch.Count() > 0)
 					{
