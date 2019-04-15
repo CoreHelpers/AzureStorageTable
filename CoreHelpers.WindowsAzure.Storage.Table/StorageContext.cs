@@ -441,31 +441,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 {
                     foreach (var queryFilter in queryFilters)
                     {
-
-                        var filterOperation = QueryComparisons.Equal;
-                        switch (queryFilter.Operator)
-                        {
-                            case QueryFilterOperator.Equal:
-                                filterOperation = QueryComparisons.Equal;
-                                break;
-                            case QueryFilterOperator.NotEqual:
-                                filterOperation = QueryComparisons.NotEqual;
-                                break;
-                            case QueryFilterOperator.Lower:
-                                filterOperation = QueryComparisons.LessThan;
-                                break;
-                            case QueryFilterOperator.Greater:
-                                filterOperation = QueryComparisons.GreaterThan;
-                                break;
-                            case QueryFilterOperator.LowerEqual:
-                                filterOperation = QueryComparisons.LessThanOrEqual;
-                                break;
-                            case QueryFilterOperator.GreaterEqual:
-                                filterOperation = QueryComparisons.GreaterThanOrEqual;
-                                break;
-                        }
-
-                        var generatedQueryFilter = TableQuery.GenerateFilterCondition(queryFilter.Property, filterOperation, queryFilter.Value);
+                        var generatedQueryFilter = queryFilter.FilterString;
 
                         if (String.IsNullOrEmpty(query.FilterString))
                             query.Where(generatedQueryFilter);
