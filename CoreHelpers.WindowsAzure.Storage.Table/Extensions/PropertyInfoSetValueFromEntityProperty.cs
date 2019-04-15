@@ -31,7 +31,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
                         if (propertyType.IsEnum && int.TryParse(entityProperty.StringValue, out var intEnum) && propertyType.IsEnumDefined(intEnum))
                             property.SetOrAddValue(entity, Enum.ToObject(property.PropertyType, intEnum), isCollection);
                         else if (propertyType.IsEnum && propertyType.IsEnumDefined(entityProperty.StringValue))
-                            property.SetOrAddValue(entity, Enum.ToObject(property.PropertyType, entityProperty.StringValue), isCollection);
+                            property.SetOrAddValue(entity, Enum.Parse(propertyType, entityProperty.StringValue), isCollection);
 
                         else if (propertyType == typeof(string))
                             property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
