@@ -28,12 +28,16 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 				switch (entityProperty.PropertyType)
 				{
 					case EdmType.String:
-						if (propertyType != typeof(string))
-							break;						
+                        if (propertyType.IsEnum && int.TryParse(entityProperty.StringValue, out var intEnum) && propertyType.IsEnumDefined(intEnum))
+                            property.SetOrAddValue(entity, Enum.ToObject(property.PropertyType, intEnum), isCollection);
+                        else if (propertyType.IsEnum && propertyType.IsEnumDefined(entityProperty.StringValue))
+                            property.SetOrAddValue(entity, Enum.ToObject(property.PropertyType, entityProperty.StringValue), isCollection);
 
-						property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
-						break;
-					case EdmType.Binary:
+                        else if (propertyType == typeof(string))
+                            property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
+
+                        break;
+                    case EdmType.Binary:
 						if (propertyType != typeof(byte[]))						
 							break;						
 
