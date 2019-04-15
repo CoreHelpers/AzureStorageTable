@@ -26,7 +26,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Models
         public QueryFilterOperator Operator { get; set; }
         public QueryFilterType FilterType { get; set;  }
 
-        public string FilterString {
+        public virtual string FilterString {
             get {
                 var filterOperation = QueryComparisons.Equal;
                 switch (Operator)
