@@ -370,20 +370,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			catch (StorageException ex) 
 			{
 				// check the exception
-				if (!_autoCreateTable || !ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+                if (_autoCreateTable && ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+                {
+				    // try to create the table	
+				    await CreateTableAsync<T>();
+
+				    // retry 
+				    await StoreAsync<T>(storaeOperationType, models);
+                }
+				else
 				{
 					// notify delegate
 					if (_delegate != null)
 						_delegate.OnStored(typeof(T), storaeOperationType, 0, ex);				
 					
 					throw ex;
-				}
-
-				// try to create the table	
-				await CreateTableAsync<T>();
-
-				// retry 
-				await StoreAsync<T>(storaeOperationType, models);					
+				}				
 			}
 		}
 
