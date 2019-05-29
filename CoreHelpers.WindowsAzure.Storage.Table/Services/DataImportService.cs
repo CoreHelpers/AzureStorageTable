@@ -124,9 +124,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
                 await Task.Delay(20000);
                 await CreateAzureTableAsync(table);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
     }
