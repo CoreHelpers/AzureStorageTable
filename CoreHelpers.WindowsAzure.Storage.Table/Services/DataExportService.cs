@@ -83,9 +83,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
                 wr.WriteEnd();
                 wr.Flush();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
     }
