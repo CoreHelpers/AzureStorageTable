@@ -32,45 +32,42 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		public string ETag { get; set; }
 
-		public string PartitionKey
-		{
-			get
-			{
-				if ( _entityMapper.PartitionKeyFormat.Contains("{{") && _entityMapper.PartitionKeyFormat.Contains("}}")) 
-				{
-					var template = Handlebars.Compile(_entityMapper.PartitionKeyFormat);
-					return template(_srcModel);
-				} else {
-					var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.PartitionKeyFormat);
-					return propertyInfo.GetValue(_srcModel) as String;
-				}					
-			}
+        public string PartitionKey {
+            get { return GetTableStorageDefaultProperty<string>(_entityMapper.PartitionKeyFormat); }
+            set { SetTableStorageDefaultProperty<string, PartitionKeyAttribute>(value); }
+        }
 
-			set
-			{
-				// we don't need to do anything 
-			}
-		}
+        public string RowKey {
+            get { return GetTableStorageDefaultProperty<string>(_entityMapper.RowKeyFormat); }
+            set { SetTableStorageDefaultProperty<string, RowKeyAttribute>(value); }
+        }
 
-		public string RowKey
-		{
-			get
-			{
-				if ( _entityMapper.RowKeyFormat.Contains("{{") && _entityMapper.RowKeyFormat.Contains("}}")) 
-				{
-					var template = Handlebars.Compile(_entityMapper.RowKeyFormat);
-					return template(_srcModel);
-				} else {
-					var propertyInfo = _srcModel.GetType().GetRuntimeProperty(_entityMapper.RowKeyFormat);
-					return propertyInfo.GetValue(_srcModel) as String;
-				}				
-			}
+        private S GetTableStorageDefaultProperty<S>(string format) where S : class
+        {
+            if (typeof(S) == typeof(string) && format.Contains("{{") && format.Contains("}}"))
+            {
+                var template = Handlebars.Compile(format);
+                return template(_srcModel) as S;
+            }
+            else
+            {
+                var propertyInfo = _srcModel.GetType().GetRuntimeProperty(format);
+                return propertyInfo.GetValue(_srcModel) as S;
+            }
+        }
 
-			set
-			{
-				// we don't need to do anything 
-			}
-		}
+        private void SetTableStorageDefaultProperty<S, A>(S value) where A : Attribute
+        {
+            foreach (var property in _srcModel.GetType()?.GetRuntimeProperties())
+            {
+                if (property.GetCustomAttribute<A>() != null && property?.GetCustomAttribute<IgnorePropertyAttribute>() != null)
+                {
+                    var setter = property.GetSetMethod();
+                    if (setter != null && !setter.IsStatic)
+                        property.SetValue(_srcModel, value);
+                }
+            }
+        }
 
 		public DateTimeOffset Timestamp { get; set; }
 
