@@ -147,7 +147,7 @@ public class JObjectModel
 Fork as usual and go crazy!
 
 Contributors
-Thank you to the following wonderful people for contributing to rapns:
+Thank you to the following wonderful people for contributing to Azure Storage Table:
 
 @petero-dk
 @afrischk
