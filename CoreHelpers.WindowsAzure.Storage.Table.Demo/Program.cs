@@ -24,7 +24,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             // register all demo cases
             var cases = new List<IDemoCase>
             {
-                /new UC01StoreWithStaticEntityMapper(),
+                // new UC01StoreWithStaticEntityMapper(),
                 // new UC02StoreWithAttributeMapper(),
                 // new UC03StoreWithAttributeMapperManualRegistration(),
                 // new UC04GetVirtualArray(),
