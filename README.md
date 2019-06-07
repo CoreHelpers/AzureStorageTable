@@ -149,5 +149,5 @@ Fork as usual and go crazy!
 Contributors
 Thank you to the following wonderful people for contributing to Azure Storage Table:
 
-* @petero-dk
-* @afrischk
+* [@petero-dk](https://github.com/petero-dk)
+* [@afrischk](https://github.com/afrischk)
