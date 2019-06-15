@@ -299,7 +299,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return entityMapper.TableName;
 		}
 		
-		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
+		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models, ParallelConnectionsOptions parallelOptions = null) where T : new()
 		{
 			try
 			{
@@ -319,18 +319,34 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
-
-				// define the modelcounter
-				int modelCounter = 0;
-
+                
                 // batch operations must be in the same partition
                 var partitions = models.Select(m => new DynamicTableEntity<T>(m, entityMapper)).GroupBy(m => m.PartitionKey);
 
-				// Add all items
+                var batchTasks = new List<Task<IList<TableResult>>>();
+#if DEBUG
+                var stopWatch = new System.Diagnostics.Stopwatch();
+                stopWatch.Start();
+#endif
+                if (parallelOptions == null)
+                    parallelOptions = ParallelConnectionsOptions.Default;
+
+                if (parallelOptions.RunInParallel && _autoCreateTable)
+                {
+                    // try to create the table if we are parallel processing the catch/retry mechanism fails 
+                    await CreateTableAsync<T>(true);
+                }
+
+
+                // Add all items
                 foreach (var partition in partitions)
                 {
+                    if (parallelOptions.RunInParallel && currentBatch != null)
+                        batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
                     currentBatch = new TableBatchOperation();
-                    batchOperations.Add(currentBatch);
+                    if (!parallelOptions.RunInParallel)
+                        batchOperations.Add(currentBatch);
 
                     foreach (var dynamicEntity in partition)
                     {
@@ -353,30 +369,64 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                                 break;
                         }
 
-                        modelCounter++;
 
-                        if (modelCounter % 100 == 0)
+                        if (currentBatch.Count == 100)
                         {
+                            if (parallelOptions.RunInParallel && currentBatch != null)
+                                batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
                             currentBatch = new TableBatchOperation();
-                            batchOperations.Add(currentBatch);
+                            if (!parallelOptions.RunInParallel)
+                                batchOperations.Add(currentBatch);
+                        }
+
+                        if (parallelOptions.RunInParallel && batchTasks.Count >= parallelOptions.MaxDegreeOfParallelism)
+                        {
+                            var taskResults = await Task.WhenAll(batchTasks);
+                            if (_delegate != null)
+                                foreach (var taskResult in taskResults)
+                                    _delegate.OnStored(typeof(T), storaeOperationType, taskResult.Count, null);
+
+                            batchTasks.Clear();
+                        }
+                    }
+                }
+                if (parallelOptions.RunInParallel)
+                {
+                    var taskResults = await Task.WhenAll(batchTasks);
+                    if (_delegate != null)
+                        foreach (var taskResult in taskResults)
+                            _delegate.OnStored(typeof(T), storaeOperationType, taskResult.Count, null);
+                }
+                else
+                {
+                    // execute 
+                    foreach (var createdBatch in batchOperations)
+                    {
+                        if (createdBatch.Count() > 0)
+                        {
+                            await table.ExecuteBatchAsync(createdBatch);
+
+                            // notify delegate
+                            if (_delegate != null)
+                                _delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count, null);
                         }
                     }
                 }
 
-                // execute 
-                foreach (var createdBatch in batchOperations)
-				{
-					if (createdBatch.Count() > 0)
-					{
-						await table.ExecuteBatchAsync(createdBatch);
+#if DEBUG
+                stopWatch.Stop();
+                // Get the elapsed time as a TimeSpan value.
+                TimeSpan ts = stopWatch.Elapsed;
 
-						// notify delegate
-						if (_delegate != null)
-							_delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count(), null);
-					}
-				}
-			} 
-			catch (StorageException ex) 
+                // Format and display the TimeSpan value.
+                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    ts.Hours, ts.Minutes, ts.Seconds,
+                    ts.Milliseconds / 10);
+                Console.WriteLine("RunTime " + elapsedTime);
+#endif
+            }
+            catch (StorageException ex) 
 			{
 				// check the exception
 				if (!_autoCreateTable || !ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
