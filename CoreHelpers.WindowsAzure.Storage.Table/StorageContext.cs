@@ -308,14 +308,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					_delegate.OnStoring(typeof(T), storaeOperationType);
 					
 				// Retrieve a reference to the table.
-				CloudTable table = GetTableReference(GetTableName<T>());
+				var table = GetTableReference(GetTableName<T>());
 
 				// Create the batch operation.
-				List<TableBatchOperation> batchOperations = new List<TableBatchOperation>();
-				
-				// Create the first batch
-				var currentBatch = new TableBatchOperation();
-				batchOperations.Add(currentBatch);
+				var batchOperations = new List<TableBatchOperation>();
+
+                // Allocate batch variable
+                var currentBatch = default(TableBatchOperation);
 
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
@@ -324,10 +323,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 var partitions = models.Select(m => new DynamicTableEntity<T>(m, entityMapper)).GroupBy(m => m.PartitionKey);
 
                 var batchTasks = new List<Task<IList<TableResult>>>();
-#if DEBUG
-                var stopWatch = new System.Diagnostics.Stopwatch();
-                stopWatch.Start();
-#endif
+
                 if (parallelOptions == null)
                     parallelOptions = ParallelConnectionsOptions.Default;
 
@@ -341,8 +337,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 // Add all items
                 foreach (var partition in partitions)
                 {
-                    if (parallelOptions.RunInParallel && currentBatch != null)
-                        batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
 
                     currentBatch = new TableBatchOperation();
                     if (!parallelOptions.RunInParallel)
@@ -350,6 +344,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
                     foreach (var dynamicEntity in partition)
                     {
+                        if (currentBatch.Count == 100)
+                        {
+                            if (parallelOptions.RunInParallel)
+                                batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
+                            currentBatch = new TableBatchOperation();
+
+                            if (!parallelOptions.RunInParallel)
+                                batchOperations.Add(currentBatch);
+                        }
+
                         switch (storaeOperationType)
                         {
                             case nStoreOperation.insertOperation:
@@ -370,16 +375,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                         }
 
 
-                        if (currentBatch.Count == 100)
-                        {
-                            if (parallelOptions.RunInParallel && currentBatch != null)
-                                batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
-
-                            currentBatch = new TableBatchOperation();
-                            if (!parallelOptions.RunInParallel)
-                                batchOperations.Add(currentBatch);
-                        }
-
                         if (parallelOptions.RunInParallel && batchTasks.Count >= parallelOptions.MaxDegreeOfParallelism)
                         {
                             var taskResults = await Task.WhenAll(batchTasks);
@@ -390,9 +385,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                             batchTasks.Clear();
                         }
                     }
+
+                    if (parallelOptions.RunInParallel && currentBatch != null && currentBatch.Any())
+                        batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
                 }
+
                 if (parallelOptions.RunInParallel)
                 {
+
                     var taskResults = await Task.WhenAll(batchTasks);
                     if (_delegate != null)
                         foreach (var taskResult in taskResults)
@@ -413,18 +414,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                         }
                     }
                 }
-
-#if DEBUG
-                stopWatch.Stop();
-                // Get the elapsed time as a TimeSpan value.
-                TimeSpan ts = stopWatch.Elapsed;
-
-                // Format and display the TimeSpan value.
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                    ts.Hours, ts.Minutes, ts.Seconds,
-                    ts.Milliseconds / 10);
-                Console.WriteLine("RunTime " + elapsedTime);
-#endif
+                
             }
             catch (StorageException ex) 
 			{
