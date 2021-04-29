@@ -13,11 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.0.x
     - name: Restore dependencies
       run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
-    - name: Build
+    - name: Build .NET Core
       run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+    - name: Build .NEt Desktop
+      run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
+      
+      
