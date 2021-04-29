@@ -26,4 +26,4 @@ jobs:
     - name: Build .NET Desktop
       run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
     - name: Setup NuGet.exe for use with actions
-    - uses: NuGet/setup-nuget@v1.0.5
+      uses: NuGet/setup-nuget@v1.0.5
