@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
-using CoreHelpers.WindowsAzure.Storage.Table.Demo.Models;
 using CoreHelpers.WindowsAzure.Storage.Table.Models;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
@@ -12,13 +11,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
     [Storable(Tablename: "DemoEntityQuery")]
     public class DemoEntityQuery
     {
-        [PartitionKey]
-        public string P { get; set; } = "P1";
+        [PartitionKey] public string P { get; set; } = "P1";
 
-        [RowKey]
-        public string R { get; set; } = "R1";
+        [RowKey] public string R { get; set; } = "R1";
 
-        public string DataElement { get; set; }
+        public string StringField { get; set; }
+
+        public bool BoolField { get; set; }
     }
 
     public class UC19QueryFilter : IDemoCase
@@ -29,11 +28,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
             using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
             {
                 // create the model 
-                var models = new List<DemoEntityQuery>() {
-                    new DemoEntityQuery() { R = "E1", DataElement = "Demo01" },
-                    new DemoEntityQuery() { R = "E2", DataElement = "Demo02" },
-                    new DemoEntityQuery() { R = "E3", DataElement = "Demo02" },
-                    new DemoEntityQuery() { R = "E4", DataElement = "Demo03" }
+                var models = new List<DemoEntityQuery>()
+                {
+                    new DemoEntityQuery() {R = "E1", StringField = "Demo01"},
+                    new DemoEntityQuery() {R = "E2", StringField = "Demo02"},
+                    new DemoEntityQuery() {R = "E3", StringField = "Demo02"},
+                    new DemoEntityQuery() {R = "E4", StringField = "Demo03"},
+                    new DemoEntityQuery() {R = "E5", StringField = "Demo03", BoolField = true}
                 };
 
                 // ensure we are using the attributes
@@ -51,8 +52,27 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
                 // buidl a filter 
                 var queryFilter = new List<QueryFilter>()
                 {
-                    new QueryFilter() { FilterType = QueryFilterType.Where, Property = "DataElement", Value = "Demo02", Operator = QueryFilterOperator.Equal },
-                    new QueryFilter() { FilterType = QueryFilterType.Or, Property = "DataElement", Value = "Demo03", Operator = QueryFilterOperator.Equal }
+                    new QueryFilter()
+                    {
+                        FilterType = QueryFilterType.Where, 
+                        Property = nameof(DemoEntityQuery.StringField),
+                        Value = "Demo03", 
+                        Operator = QueryFilterOperator.Equal
+                    },
+                    new QueryFilter()
+                    {
+                        FilterType = QueryFilterType.And, 
+                        Property = nameof(DemoEntityQuery.BoolField),
+                        Value = true, 
+                        Operator = QueryFilterOperator.Equal
+                    },
+                    new QueryFilter()
+                    {
+                        FilterType = QueryFilterType.Or, 
+                        Property = nameof(DemoEntityQuery.StringField),
+                        Value = "Demo02", 
+                        Operator = QueryFilterOperator.Equal
+                    },
                 };
 
                 // query all

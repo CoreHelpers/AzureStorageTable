@@ -443,7 +443,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 {
                     foreach (var queryFilter in queryFilters)
                     {
-                        var generatedQueryFilter = queryFilter.FilterString;
+                        var generatedQueryFilter = queryFilter.ToString();
 
                         if (String.IsNullOrEmpty(query.FilterString))
                             query.Where(generatedQueryFilter);
