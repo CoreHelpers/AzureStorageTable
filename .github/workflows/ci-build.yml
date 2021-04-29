@@ -19,8 +19,12 @@ jobs:
         dotnet-version: 2.0.x
     - name: Restore dependencies
       run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+      env: 
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     - name: Build .NET Core
       run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+      env: 
+        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
     - name: Setup NuGet.exe for use with actions
