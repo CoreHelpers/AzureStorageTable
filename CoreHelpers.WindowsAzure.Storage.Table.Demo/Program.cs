@@ -46,10 +46,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
             };
 			
 			// register demo cases for Ger Cloud
-			var casesGer = new List<IDemoCase>
-			{
-				new UC06AutoCreateTable()				
-			};
+			// var casesGer = new List<IDemoCase>
+			// {
+			// 	new UC06AutoCreateTable()				
+			// };
 			
 			// execute in WW cloud 
 			Console.WriteLine("Executing Demo Cases (WW Cloud)");
