@@ -56,44 +56,44 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Models
                     break;
             }
 
-            if (Value is string stringValue)
+            if (Value is string)
             {
-                return TableQuery.GenerateFilterCondition(Property, filterOperation, stringValue);
+                return TableQuery.GenerateFilterCondition(Property, filterOperation, (string) Value);
             }
 
-            if (Value is bool boolValue)
+            if (Value is bool)
             {
-                return TableQuery.GenerateFilterConditionForBool(Property, filterOperation, boolValue);
+                return TableQuery.GenerateFilterConditionForBool(Property, filterOperation, (bool) Value);
             }
 
-            if (Value is byte[] binaryValue)
+            if (Value is byte[])
             {
-                return TableQuery.GenerateFilterConditionForBinary(Property, filterOperation, binaryValue);
+                return TableQuery.GenerateFilterConditionForBinary(Property, filterOperation, (byte[]) Value);
             }
 
-            if (Value is DateTimeOffset dateValue)
+            if (Value is DateTimeOffset)
             {
-                return TableQuery.GenerateFilterConditionForDate(Property, filterOperation, dateValue);
+                return TableQuery.GenerateFilterConditionForDate(Property, filterOperation, (DateTimeOffset) Value);
             }
 
-            if (Value is double doubleValue)
+            if (Value is double)
             {
-                return TableQuery.GenerateFilterConditionForDouble(Property, filterOperation, doubleValue);
+                return TableQuery.GenerateFilterConditionForDouble(Property, filterOperation, (double) Value);
             }
 
-            if (Value is Guid guidValue)
+            if (Value is Guid)
             {
-                return TableQuery.GenerateFilterConditionForGuid(Property, filterOperation, guidValue);
+                return TableQuery.GenerateFilterConditionForGuid(Property, filterOperation, (Guid) Value);
             }
 
-            if (Value is int intValue)
+            if (Value is int)
             {
-                return TableQuery.GenerateFilterConditionForInt(Property, filterOperation, intValue);
+                return TableQuery.GenerateFilterConditionForInt(Property, filterOperation, (int) Value);
             }
 
-            if (Value is long longValue)
+            if (Value is long)
             {
-                return TableQuery.GenerateFilterConditionForLong(Property, filterOperation, longValue);
+                return TableQuery.GenerateFilterConditionForLong(Property, filterOperation, (long) Value);
             }
 
             throw new NotSupportedException($"QueryFilter of Type \"{Value?.GetType().FullName}\" is not supported.");
