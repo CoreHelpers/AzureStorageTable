@@ -21,7 +21,9 @@ jobs:
       run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
     - name: Build .NET Core
       run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
-    - name: Build .NEt Desktop
+    - name: Setup msbuild
+      uses: microsoft/setup-msbuild@v1
+    - name: Build .NET Desktop
       run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
-      
-      
+    - name: Setup NuGet.exe for use with actions
+    - uses: NuGet/setup-nuget@v1.0.5
