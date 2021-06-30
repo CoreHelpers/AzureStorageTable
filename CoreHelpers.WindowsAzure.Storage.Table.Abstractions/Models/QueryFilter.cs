@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 using System;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Models
+namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Models
 {
     public enum QueryFilterOperator
     {

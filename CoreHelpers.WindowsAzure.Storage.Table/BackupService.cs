@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -46,7 +47,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
             // get all tables 
             var tables = await tableStorageContext.QueryTableList();
-            storageLogger.LogInformation($"Processing {tables.Count} tables");
+            storageLogger.LogInformation($"Processing {tables.Count()} tables");
 
             // prepare the backup container
             var backupBlobClient = backupStorageAccount.CreateCloudBlobClient();

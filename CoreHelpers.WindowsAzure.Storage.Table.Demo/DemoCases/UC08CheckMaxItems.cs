@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Helpers;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Models;
@@ -41,7 +42,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 					new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em0@acme.org" }
 				};
 				
-				await storageContext.StoreAsync(nStoreOperation.mergeOrInserOperation, data);
+				await storageContext.StoreAsync(StorageOperation.MergeOrInserOperation, data);
 				
             	        
 				Console.WriteLine("Query max Item Models");

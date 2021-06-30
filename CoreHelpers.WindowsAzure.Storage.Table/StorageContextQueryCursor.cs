@@ -2,19 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CoreHelpers.WindowsAzure.Storage.Table.Models;
-using Microsoft.WindowsAzure.Storage.Table;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Models;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {	
-	public class StorageContextQueryCursor<T> : IDisposable where T : new()
+	public class StorageContextQueryCursor<T> : IStorageContextQueryCursor<T> where T : new()
 	{
 		private StorageContext StorageContext { get; set; }		
 		private string PartitionKey { get; set; }
 		private string RowKey { get; set; } 
 		private int MaxItems { get; set; }
         private IEnumerable<QueryFilter> QueryFilters { get; set; }
-
 
         private QueryResult<T> CurrentQueryResult { get; set; }
 		

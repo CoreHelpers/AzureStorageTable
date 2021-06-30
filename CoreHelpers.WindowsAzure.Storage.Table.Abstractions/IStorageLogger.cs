@@ -1,5 +1,5 @@
 ﻿using System;
-namespace CoreHelpers.WindowsAzure.Storage.Table
+namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
 {
     public interface IStorageLogger
     {

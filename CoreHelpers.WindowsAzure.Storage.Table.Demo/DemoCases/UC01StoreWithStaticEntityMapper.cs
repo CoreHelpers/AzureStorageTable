@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Helpers;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Models;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Models;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Models;

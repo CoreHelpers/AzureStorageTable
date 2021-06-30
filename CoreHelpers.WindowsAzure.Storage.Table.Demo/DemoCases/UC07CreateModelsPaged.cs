@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Linq;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Helpers;
 using CoreHelpers.WindowsAzure.Storage.Table.Demo.Models;
@@ -33,7 +34,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
                 var startDate = DateTime.Now;
 
 
-				using (var pagedWriter = new PagedTableEntityWriter<UserModel2>(storageContext, nStoreOperation.insertOrReplaceOperation, 100))
+				using (var pagedWriter = new PagedTableEntityWriter<UserModel2>(storageContext, StorageOperation.InsertOrReplaceOperation, 100))
 				{
 					var t1 = Task.Run(async () =>
 					{

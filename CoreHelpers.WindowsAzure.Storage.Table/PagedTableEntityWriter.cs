@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -8,10 +9,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 	{
 		private List<T> _modelCache { get; set; } = new List<T>();
 		private int _pageSize { get; set; }
-		private nStoreOperation _operation { get; set; }
+		private StorageOperation _operation { get; set; }
 		private StorageContext _parentContext { get; set; }
 		
-		public PagedTableEntityWriter(StorageContext parentContext, nStoreOperation operation, int pageSize) 
+		public PagedTableEntityWriter(StorageContext parentContext, StorageOperation operation, int pageSize) 
 		{
 			_pageSize = pageSize > 100 ? 100 : pageSize;
 			_operation = operation;
