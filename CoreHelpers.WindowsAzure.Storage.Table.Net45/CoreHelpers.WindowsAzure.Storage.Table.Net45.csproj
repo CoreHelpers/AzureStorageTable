@@ -117,6 +117,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Extensions\PropertyInfoSetValueFromEntityProperty.cs">
       <Link>Extensions\PropertyInfoSetValueFromEntityProperty.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Models\ParallelConnectionsOptions.cs">
+      <Link>Models\ParallelConnectionsOptions.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\PagedTableEntityWriter.cs">
       <Link>PagedTableEntityWriter.cs</Link>
     </Compile>

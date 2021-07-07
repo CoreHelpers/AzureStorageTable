@@ -299,7 +299,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return entityMapper.TableName;
 		}
 		
-		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
+		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models, ParallelConnectionsOptions parallelOptions = null) where T : new()
 		{
 			try
 			{
@@ -308,66 +308,115 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					_delegate.OnStoring(typeof(T), storaeOperationType);
 					
 				// Retrieve a reference to the table.
-				CloudTable table = GetTableReference(GetTableName<T>());
+				var table = GetTableReference(GetTableName<T>());
 
 				// Create the batch operation.
-				List<TableBatchOperation> batchOperations = new List<TableBatchOperation>();
-				
-				// Create the first batch
-				var currentBatch = new TableBatchOperation();
-				batchOperations.Add(currentBatch);
+				var batchOperations = new List<TableBatchOperation>();
+
+                // Allocate batch variable
+                var currentBatch = default(TableBatchOperation);
 
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
+                
+                // batch operations must be in the same partition
+                var partitions = models.Select(m => new DynamicTableEntity<T>(m, entityMapper)).GroupBy(m => m.PartitionKey);
 
-				// define the modelcounter
-				int modelCounter = 0;
+                var batchTasks = new List<Task<IList<TableResult>>>();
 
-				// Add all items
-				foreach (var model in models)
-				{
-					switch (storaeOperationType)
-					{
-						case nStoreOperation.insertOperation:
-							currentBatch.Insert(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.insertOrReplaceOperation:
-							currentBatch.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.mergeOperation:
-							currentBatch.Merge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.mergeOrInserOperation:
-							currentBatch.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.delete: 
-							currentBatch.Delete(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-					}
+                if (parallelOptions == null)
+                    parallelOptions = ParallelConnectionsOptions.Default;
 
-					modelCounter++;
+                if (parallelOptions.RunInParallel && _autoCreateTable)
+                {
+                    // try to create the table if we are parallel processing the catch/retry mechanism fails 
+                    await CreateTableAsync<T>(true);
+                }
 
-					if (modelCounter % 100 == 0)
-					{
-						currentBatch = new TableBatchOperation();
-						batchOperations.Add(currentBatch);
-					}
-				}
 
-				// execute 
-				foreach (var createdBatch in batchOperations)
-				{
-					if (createdBatch.Count() > 0)
-					{
-						await table.ExecuteBatchAsync(createdBatch);
+                // Add all items
+                foreach (var partition in partitions)
+                {
 
-						// notify delegate
-						if (_delegate != null)
-							_delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count(), null);
-					}
-				}
-			} 
-			catch (StorageException ex) 
+                    currentBatch = new TableBatchOperation();
+                    if (!parallelOptions.RunInParallel)
+                        batchOperations.Add(currentBatch);
+
+                    foreach (var dynamicEntity in partition)
+                    {
+                        if (currentBatch.Count == 100)
+                        {
+                            if (parallelOptions.RunInParallel)
+                                batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
+                            currentBatch = new TableBatchOperation();
+
+                            if (!parallelOptions.RunInParallel)
+                                batchOperations.Add(currentBatch);
+                        }
+
+                        switch (storaeOperationType)
+                        {
+                            case nStoreOperation.insertOperation:
+                                currentBatch.Insert(dynamicEntity);
+                                break;
+                            case nStoreOperation.insertOrReplaceOperation:
+                                currentBatch.InsertOrReplace(dynamicEntity);
+                                break;
+                            case nStoreOperation.mergeOperation:
+                                currentBatch.Merge(dynamicEntity);
+                                break;
+                            case nStoreOperation.mergeOrInserOperation:
+                                currentBatch.InsertOrMerge(dynamicEntity);
+                                break;
+                            case nStoreOperation.delete:
+                                currentBatch.Delete(dynamicEntity);
+                                break;
+                        }
+
+
+                        if (parallelOptions.RunInParallel && batchTasks.Count >= parallelOptions.MaxDegreeOfParallelism)
+                        {
+                            var taskResults = await Task.WhenAll(batchTasks);
+                            if (_delegate != null)
+                                foreach (var taskResult in taskResults)
+                                    _delegate.OnStored(typeof(T), storaeOperationType, taskResult.Count, null);
+
+                            batchTasks.Clear();
+                        }
+                    }
+
+                    if (parallelOptions.RunInParallel && currentBatch != null && currentBatch.Any())
+                        batchTasks.Add(table.ExecuteBatchAsync(currentBatch));
+
+                }
+
+                if (parallelOptions.RunInParallel)
+                {
+
+                    var taskResults = await Task.WhenAll(batchTasks);
+                    if (_delegate != null)
+                        foreach (var taskResult in taskResults)
+                            _delegate.OnStored(typeof(T), storaeOperationType, taskResult.Count, null);
+                }
+                else
+                {
+                    // execute 
+                    foreach (var createdBatch in batchOperations)
+                    {
+                        if (createdBatch.Count() > 0)
+                        {
+                            await table.ExecuteBatchAsync(createdBatch);
+
+                            // notify delegate
+                            if (_delegate != null)
+                                _delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count, null);
+                        }
+                    }
+                }
+                
+            }
+            catch (StorageException ex) 
 			{
 				// check the exception
                 if (_autoCreateTable && ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))

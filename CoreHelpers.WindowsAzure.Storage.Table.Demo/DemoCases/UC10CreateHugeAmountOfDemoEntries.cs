@@ -25,7 +25,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 
 				// create 2000 items
 				var data = new List<HugeDemoEntry>();
-				for (int i = 0; i < 2000; i++)
+				for (int i = 0; i < 20000; i++)
 					data.Add(new HugeDemoEntry());
 
 				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<HugeDemoEntry>(data);

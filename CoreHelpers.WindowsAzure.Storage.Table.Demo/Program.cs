@@ -33,7 +33,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC07CreateModelsPaged(),
                 // new UC08CheckMaxItems(),
                 // new UC09ReadInterfaceValues(),
-                // new UC10CreateHugeAmountOfDemoEntries(),
+                 new UC10CreateHugeAmountOfDemoEntries(),
                 // new UC11ReadPageByPage(),
                 // new UC12PartialUpdateMergeModel(),
                 // new UC13DynamicallyCreateList(),
@@ -42,7 +42,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC16Backup()
                 // new UC17Restore()
                 // new UC18DateTime()
-                new UC19QueryFilter()
+                // new UC19QueryFilter()
             };
 			
 			// register demo cases for Ger Cloud
@@ -54,10 +54,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
 			// execute in WW cloud 
 			Console.WriteLine("Executing Demo Cases (WW Cloud)");
 			foreach (var useCase in cases)
-				await useCase.Execute(config.GetValue("key").ToString(), config.GetValue("secret").ToString());									
-				
-			// execute in GER cloud 
-			/*Console.WriteLine("Executing Demo Cases (GER Cloud)");
+				await useCase.Execute(config.GetValue("key").ToString(), config.GetValue("secret").ToString());
+
+            Console.ReadKey();
+            // execute in GER cloud 
+            /*Console.WriteLine("Executing Demo Cases (GER Cloud)");
 			foreach (var useCase in casesGer)
 				await useCase.Execute(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");													*/
         }                            				
