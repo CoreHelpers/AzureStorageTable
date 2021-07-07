@@ -24,16 +24,25 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 				// handle colleciton s
 				if (isCollection)
 					propertyType = property.PropertyType.GenericTypeArguments[0];
-									
-				switch (entityProperty.PropertyType)
+
+                var nullableUnderlyingType = Nullable.GetUnderlyingType(propertyType);
+                if (nullableUnderlyingType != null)
+                    propertyType = nullableUnderlyingType;
+
+                switch (entityProperty.PropertyType)
 				{
 					case EdmType.String:
-						if (propertyType != typeof(string))
-							break;						
+                        int intEnum;
+                        if (propertyType.IsEnum && int.TryParse(entityProperty.StringValue, out intEnum) && propertyType.IsEnumDefined(intEnum))
+                            property.SetOrAddValue(entity, Enum.ToObject(property.PropertyType, intEnum), isCollection);
+                        else if (propertyType.IsEnum && propertyType.IsEnumDefined(entityProperty.StringValue))
+                            property.SetOrAddValue(entity, Enum.Parse(propertyType, entityProperty.StringValue), isCollection);
 
-						property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
-						break;
-					case EdmType.Binary:
+                        else if (propertyType == typeof(string))
+                            property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
+
+                        break;
+                    case EdmType.Binary:
 						if (propertyType != typeof(byte[]))						
 							break;						
 
