@@ -1,37 +1,20 @@
 name: Release Build
 
 on:
-  create:
+  push:
     tags:
-      - v*
-  workflow_dispatch:
-    
+      - 'v*.*.*'
 jobs:
-  build-core:
-    runs-on: windows-2019
+  test:
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 2.0.x
-    - name: Restore dependencies
-      run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
-      env: 
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    - name: Build .NET Core
-      run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
-      env: 
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-  build-fxnet:
-    runs-on: windows-2019
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup msbuild
-      uses: microsoft/setup-msbuild@v1
-    - name: Setup NuGet.exe for use with actions
-      uses: NuGet/setup-nuget@v1.0.5      
-    - name: Restore NuGets
-      run: nuget restore
-    - name: Build .NET Desktop
-      run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
+      - uses: actions/checkout@v2
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
