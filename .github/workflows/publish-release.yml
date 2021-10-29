@@ -14,12 +14,13 @@ jobs:
         id: get_version
         with: 
           script: |
-            const release_tag = "${GITHUB_REF/refs\/tags\//}"
+            const release_tag = context.ref.substring(10)
             const release_version = release_tag.replace('v','')
-            echo ::set-output name=RELEASE_TAG::${{release_tag}}
-            echo ::set-output name=RELEASE_VERSION::${{release_version}}
-            echo "Release Tag ${{release_tag}}"
-            echo "Release Version ${{release_version}}"
+            core.setOutput('release_tag', release_tag)
+            core.setOutput('release_tag', release_version)
+            console.log "Release Tag $release_tag"
+            console.log "Release Version $release_version"
+            console.log context.ref
       - name: Check output
         run: echo "Using release version ${{ steps.get_version.outputs.RELEASE_VERSION }}"
         shell: bash
