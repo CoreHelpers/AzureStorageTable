@@ -16,8 +16,10 @@ jobs:
       - name: Check output
         run: echo "Using release version ${{ steps.get_version.outputs.RELEASE_VERSION }}"
         shell: bash
+      - name: Dir
+        run: dir ${{ github.workspace }}
       - name: set-version-assemblyinfo
         uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
         with:
-          path: "${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table" 
+          path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table'
           version: ${{ steps.get_version.outputs.RELEASE_VERSION }}
