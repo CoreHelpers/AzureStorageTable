@@ -58,11 +58,14 @@ jobs:
       - name: Pack Nuget Package
         run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
         
+      - name: Dir 
+        run: dir
+        
       - name: Upload Nuget Package to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: AzureStorageTable\CoreHelpers.WindowsAzure.Storage.Table.${{ steps.get_version.outputs.release_version }}.nupkg
+          file: CoreHelpers.WindowsAzure.Storage.Table.${{ steps.get_version.outputs.release_version }}.nupkg
           asset_name: Nuget Package
           tag: ${{ steps.get_version.outputs.release_tag }}
           overwrite: true
