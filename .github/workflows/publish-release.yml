@@ -1,4 +1,4 @@
-name: Publish Release
+name: Publish Nuget Package to Release
 
 on:
   release:
@@ -57,9 +57,6 @@ jobs:
         
       - name: Pack Nuget Package
         run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
-        
-      - name: Dir 
-        run: dir
         
       - name: Upload Nuget Package to release
         uses: svenstaro/upload-release-action@v2
