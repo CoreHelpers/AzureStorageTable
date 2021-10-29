@@ -10,9 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Get the release version
+        uses: actions/github-script@v5.0.0
         id: get_version
-        run: echo ::set-output name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
-        shell: bash
+        with: 
+          script: |
+            const releaseTag = "${GITHUB_REF/refs\/tags\//}"
+            const releaseVersion = releaseTag.replace('v','')
+            echo ::set-output name=RELEASE_TAG::${{releaseTag}}
+            echo ::set-output name=RELEASE_VERSION::${{releaseVersion}}
+            echo "Release Tag ${{releaseTag}}"
+            echo "Release Version ${{releaseVersion}}"
       - name: Check output
         run: echo "Using release version ${{ steps.get_version.outputs.RELEASE_VERSION }}"
         shell: bash
