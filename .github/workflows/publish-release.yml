@@ -9,7 +9,13 @@ jobs:
     runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
-      - name: Get the release version
+      
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 2.0.x
+
+      - name: Get ReleaseVersion from Tag
         uses: actions/github-script@v5.0.0
         id: get_version
         with: 
@@ -20,8 +26,31 @@ jobs:
             core.setOutput('release_version', release_version)
             console.log('Release Tag ' + release_tag)
             console.log('Release Version ' + release_version)
-      - name: set-version-assemblyinfo
+            
+      - name: Set AssemblyVersion.cs
         uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
         with:
           path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table'
           version: ${{ steps.get_version.outputs.release_version }}
+      
+      - name: Restore dependencies
+        run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+        env: 
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          
+      - name: Build .NET Core
+        run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+        env: 
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1
+        
+      - name: Setup NuGet.exe for use with actions
+        uses: NuGet/setup-nuget@v1.0.5      
+        
+      - name: Restore NuGets
+        run: nuget restore
+        
+      - name: Build .NET Desktop
+        run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
