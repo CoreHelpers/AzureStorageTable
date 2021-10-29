@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/egop18jxjsfiublg?svg=true)](https://ci.appveyor.com/project/dei79/azurestoragetable)
+[![Build Status](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml/badge.svg)](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml)
 
 # AzureStorageTable
 This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity 

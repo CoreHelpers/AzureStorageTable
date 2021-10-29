@@ -1,18 +1,10 @@
 name: CI Build
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request, workflow_dispatch]
     
-  workflow_dispatch:
-
 jobs:
-  build:
-
+  build-core:
     runs-on: windows-2019
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -27,6 +19,10 @@ jobs:
       run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
       env: 
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  build-fxnet:
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v2
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v1
     - name: Setup NuGet.exe for use with actions
@@ -35,4 +31,3 @@ jobs:
       run: nuget restore
     - name: Build .NET Desktop
       run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
-
