@@ -14,5 +14,11 @@ jobs:
         run: echo ::set-output name=RELEASE_VERSION::${GITHUB_REF/refs\/tags\//}
         shell: bash
       - name: Check output
-        run: echo ${{ steps.get_version.outputs.RELEASE_VERSION }}
+        run: echo "Using the following release version:" |
+          ${{ steps.get_version.outputs.RELEASE_VERSION }}
         shell: bash
+      - name: set-version-assemblyinfo
+        uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
+        with:
+          path: "${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table" 
+          version: ${{ steps.get_version.outputs.RELEASE_VERSION }}
