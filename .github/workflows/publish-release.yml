@@ -17,7 +17,7 @@ jobs:
             const release_tag = context.ref.substring(10)
             const release_version = release_tag.replace('v','')
             core.setOutput('release_tag', release_tag)
-            core.setOutput('release_tag', release_version)
+            core.setOutput('release_version', release_version)
             console.log('Release Tag ' + release_tag)
             console.log('Release Version ' + release_version)
       - name: set-version-assemblyinfo
