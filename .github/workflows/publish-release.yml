@@ -18,9 +18,9 @@ jobs:
             const release_version = release_tag.replace('v','')
             core.setOutput('release_tag', release_tag)
             core.setOutput('release_tag', release_version)
-            console.log "Release Tag $release_tag"
-            console.log "Release Version $release_version"
-            console.log context.ref
+            console.log('Release Tag ' + release_tag)
+            console.log('Release Version ' + release_version)
+            console.log(context.ref)
       - name: Check output
         run: echo "Using release version ${{ steps.get_version.outputs.RELEASE_VERSION }}"
         shell: bash
