@@ -20,14 +20,8 @@ jobs:
             core.setOutput('release_tag', release_version)
             console.log('Release Tag ' + release_tag)
             console.log('Release Version ' + release_version)
-            console.log(context.ref)
-      - name: Check output
-        run: echo "Using release version ${{ steps.get_version.outputs.RELEASE_VERSION }}"
-        shell: bash
-      - name: Dir
-        run: dir ${{ github.workspace }}
       - name: set-version-assemblyinfo
         uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
         with:
           path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table'
-          version: ${{ steps.get_version.outputs.RELEASE_VERSION }}
+          version: ${{ steps.get_version.outputs.release_version }}
