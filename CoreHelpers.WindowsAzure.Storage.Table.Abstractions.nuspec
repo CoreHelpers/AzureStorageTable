@@ -25,5 +25,6 @@
   </metadata>
   <files>
   	<file src="CoreHelpers.WindowsAzure.Storage.Table.Abstractions\bin\Release\netstandard2.0\CoreHelpers*.dll" target="lib\netstandard2.0" />
+    <file src="CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45\bin\Release\net45\CoreHelpers*.dll" target="lib\net45" />
   </files>
 </package>
