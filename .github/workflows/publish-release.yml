@@ -26,11 +26,17 @@ jobs:
             core.setOutput('release_version', release_version)
             console.log('Release Tag ' + release_tag)
             console.log('Release Version ' + release_version)
-            
+
       - name: Set AssemblyVersion.cs
         uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
         with:
           path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table'
+          version: ${{ steps.get_version.outputs.release_version }}
+
+      - name: Set AssemblyVersion.cs (Abstractions)
+        uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
+        with:
+          path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table.Abstractions'
           version: ${{ steps.get_version.outputs.release_version }}
       
       - name: Restore dependencies

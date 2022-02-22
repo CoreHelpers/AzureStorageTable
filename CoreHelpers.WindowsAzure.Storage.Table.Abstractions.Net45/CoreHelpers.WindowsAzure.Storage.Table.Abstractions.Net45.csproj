@@ -32,6 +32,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+      <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions\AssemblyInfo.cs">
+        <Link>AssemblyInfo.cs</Link>
+      </Compile>
       <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions\IStorageContext.cs">
         <Link>IStorageContext.cs</Link>
       </Compile>
