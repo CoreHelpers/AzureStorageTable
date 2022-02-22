@@ -19,4 +19,7 @@
     <Folder Include="Services\" />
     <Folder Include="Internal\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.csproj" />
+  </ItemGroup>
 </Project>
