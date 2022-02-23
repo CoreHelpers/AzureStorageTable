@@ -24,7 +24,7 @@
     </dependencies>
   </metadata>
   <files>
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard2.0\CoreHelpers*.dll" target="lib\netstandard2.0" />    
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table.net45\bin\Release\net45\CoreHelpers*.dll" target="lib\net45" />   
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard2.0\CoreHelpers.WindowsAzure.Storage.Table.dll" target="lib\netstandard2.0" />    
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table.net45\bin\Release\net45\CoreHelpers.WindowsAzure.Storage.Table.dll" target="lib\net45" />   
   </files>
 </package>
