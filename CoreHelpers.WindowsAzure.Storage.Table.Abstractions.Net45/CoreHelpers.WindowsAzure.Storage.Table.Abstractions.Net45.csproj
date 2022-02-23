@@ -7,8 +7,8 @@
         <ProjectGuid>{FE6CBC12-6CE5-4EAD-8484-5B1196EC53EB}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45</RootNamespace>
-        <AssemblyName>CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45</AssemblyName>
+        <RootNamespace>CoreHelpers.WindowsAzure.Storage.Table.Abstractions</RootNamespace>
+        <AssemblyName>CoreHelpers.WindowsAzure.Storage.Table.Abstractions</AssemblyName>
         <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
