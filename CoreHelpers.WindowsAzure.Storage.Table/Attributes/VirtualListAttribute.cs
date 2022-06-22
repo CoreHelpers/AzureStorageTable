@@ -11,7 +11,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 	[AttributeUsage(AttributeTargets.Property)]
 	public class VirtualListAttribute : VirtualTypeAttribute
 	{
-		private Func<object, string> TemplateFunction { get; set; }
+		private HandlebarsTemplate<object, string> TemplateFunction { get; set; }
 		private string DigitFormat { get; set; }
 		
 		public VirtualListAttribute(string PropertyFormat, int Digits)
