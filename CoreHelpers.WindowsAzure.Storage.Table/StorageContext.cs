@@ -95,11 +95,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         public void AddAttributeMapper() 
         {
             AddAttributeMapper(Assembly.GetEntryAssembly());
+			AddAttributeMapper(Assembly.GetCallingAssembly());
 
-            /*foreach(var assembly in Assembly.GetEntryAssembly().GetReferencedAssemblies()) {
+			/*foreach(var assembly in Assembly.GetEntryAssembly().GetReferencedAssemblies()) {
                 AddAttributeMapper(assembly);
-            } */          
-        }
+            } */
+		}
 
         internal void AddAttributeMapper(Assembly assembly)
         {

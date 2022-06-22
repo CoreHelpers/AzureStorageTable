@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHelpers.WindowsAzure.St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45", "CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45.csproj", "{FE6CBC12-6CE5-4EAD-8484-5B1196EC53EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHelpers.WindowsAzure.Storage.Table.Tests", "CoreHelpers.WindowsAzure.Storage.Table.Tests\CoreHelpers.WindowsAzure.Storage.Table.Tests.csproj", "{66E87C0F-F3DB-4428-BA62-2A20614B4FB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{FE6CBC12-6CE5-4EAD-8484-5B1196EC53EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE6CBC12-6CE5-4EAD-8484-5B1196EC53EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE6CBC12-6CE5-4EAD-8484-5B1196EC53EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66E87C0F-F3DB-4428-BA62-2A20614B4FB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66E87C0F-F3DB-4428-BA62-2A20614B4FB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66E87C0F-F3DB-4428-BA62-2A20614B4FB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66E87C0F-F3DB-4428-BA62-2A20614B4FB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

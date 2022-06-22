@@ -15,7 +15,7 @@
     <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DemoCases\" />
