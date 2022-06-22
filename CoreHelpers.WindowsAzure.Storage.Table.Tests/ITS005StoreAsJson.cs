@@ -5,7 +5,7 @@ using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
+namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
 	[Startup(typeof(Startup))]
 	[Collection("Sequential")]

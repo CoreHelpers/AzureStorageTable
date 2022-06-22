@@ -2,32 +2,35 @@
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
-using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
-using CoreHelpers.WindowsAzure.Storage.Table.Demo.Helpers;
-using CoreHelpers.WindowsAzure.Storage.Table.Demo.Models;
+using Xunit.DependencyInjection;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
+namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
-	public class UC08CheckMaxItems : IDemoCase
+	[Startup(typeof(Startup))]
+	[Collection("Sequential")]
+	public class ITS008CheckMaxItems
 	{
-		public async Task Execute(string connectionString)
+		private readonly ITestEnvironment env;
+
+		public ITS008CheckMaxItems(ITestEnvironment env)
+		{
+			this.env = env;
+		}
+
+		[Fact]
+		public async Task VerifyMaxItems()
 		{			
 			Console.WriteLine("");
 			Console.WriteLine(this.GetType().FullName);
 						
-            using (var storageContext = new StorageContext(connectionString))
-            {     
-        		// set the delegate
-				var stats = new DemoCaseStatsDelegate();
-				storageContext.SetDelegate(stats);
-			     	
-		     	Console.WriteLine("Configuring Entity Mappers");
-				storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");
-				
-				Console.WriteLine("Create Tables");
+            using (var storageContext = new StorageContext(env.ConnectionString))
+            {             		 			     	
+				storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");								
 				storageContext.CreateTable<UserModel2>(true);
-
-				Console.WriteLine("InsertData");
+				
 				var data = new List<UserModel2>() {
 					new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em1@acme.org" },
 					new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em2@acme.org" },
@@ -42,23 +45,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 				};
 				
 				await storageContext.StoreAsync(nStoreOperation.mergeOrInserOperation, data);
-				
-            	        
-				Console.WriteLine("Query max Item Models");
+				            	       				
 				var items = (await storageContext.QueryAsync<UserModel2>(5)).AsEnumerable();
-				Console.WriteLine("Found {0} items", items.Count());
-				if (items.Count() != 5)
-					Console.WriteLine("OHOH should be 5");					
-							    						
-				Console.WriteLine("Query all items");
+				Assert.Equal(5, items.Count());
+													    									
 				var allitems = await storageContext.QueryAsync<UserModel2>();
-				
-                // Clean up 
-				Console.WriteLine("Removing all entries");			
-				await storageContext.DeleteAsync<UserModel2>(allitems);												
-				
-				// dump the stats 
-				stats.DumpStats();                        
+				Assert.Equal(10, allitems.Count());
+
+				// Clean up 				
+				await storageContext.DeleteAsync<UserModel2>(allitems);
+				var result = await storageContext.QueryAsync<UserModel2>();
+				Assert.Equal(0, result.Count());				
             }						
 		}	
 	}
