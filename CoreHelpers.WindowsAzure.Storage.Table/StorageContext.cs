@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using System.IO;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
-using CoreHelpers.WindowsAzure.Storage.Table.Models;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -27,9 +27,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		public TableContinuationToken NextToken { get; internal set; }
 	}
 	
-	
-	
-	public class StorageContext : IDisposable
+	public class StorageContext : IStorageContext
 	{		
 		private CloudStorageAccount _storageAccount { get; set; }
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
@@ -71,8 +69,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			_delegate = delegateModel;		
 		}
-		
-		public StorageContext EnableAutoCreateTable() 
+
+		public IStorageContext CreateChildContext()
+		{
+			return new StorageContext(this);
+		}
+
+		public IStorageContext EnableAutoCreateTable() 
 		{
 			_autoCreateTable = true;
 			return this;
@@ -393,7 +396,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			await this.StoreAsync(nStoreOperation.delete, new List<T>() { model });
 		}
-		
+
+		IStorageContext IStorageContext.OverrideTableName<T>(string table)
+		{
+			throw new NotImplementedException();
+		}
+
 		public async Task DeleteAsync<T>(IEnumerable<T> models) where T: new() 
 		{
 			await this.StoreAsync(nStoreOperation.delete, models);
@@ -443,7 +451,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 {
                     foreach (var queryFilter in queryFilters)
                     {
-                        var generatedQueryFilter = queryFilter.ToString();
+                        var generatedQueryFilter = queryFilter.ToFilterString();
 
                         if (String.IsNullOrEmpty(query.FilterString))
                             query.Where(generatedQueryFilter);

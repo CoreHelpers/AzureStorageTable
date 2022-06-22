@@ -117,6 +117,9 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Extensions\PropertyInfoSetValueFromEntityProperty.cs">
       <Link>Extensions\PropertyInfoSetValueFromEntityProperty.cs</Link>
     </Compile>
+    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Extensions\QueryFilterExtensions.cs">
+      <Link>Extensions\QueryFilterExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\PagedTableEntityWriter.cs">
       <Link>PagedTableEntityWriter.cs</Link>
     </Compile>
@@ -165,13 +168,16 @@
     <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Internal\ZippedStreamWriter.cs">
       <Link>Internal\ZippedStreamWriter.cs</Link>
     </Compile>
-    <Compile Include="..\CoreHelpers.WindowsAzure.Storage.Table\Models\QueryFilter.cs">
-      <Link>Models\QueryFilter.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45.csproj">
+      <Project>{fe6cbc12-6ce5-4ead-8484-5b1196ec53eb}</Project>
+      <Name>CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

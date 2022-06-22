@@ -26,11 +26,17 @@ jobs:
             core.setOutput('release_version', release_version)
             console.log('Release Tag ' + release_tag)
             console.log('Release Version ' + release_version)
-            
+
       - name: Set AssemblyVersion.cs
         uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
         with:
           path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table'
+          version: ${{ steps.get_version.outputs.release_version }}
+
+      - name: Set AssemblyVersion.cs (Abstractions)
+        uses: dannevesdantas/set-version-assemblyinfo@v.1.0.0
+        with:
+          path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table.Abstractions'
           version: ${{ steps.get_version.outputs.release_version }}
       
       - name: Restore dependencies
@@ -54,15 +60,27 @@ jobs:
         
       - name: Build .NET Desktop
         run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
-        
+
       - name: Pack Nuget Package
         run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
-        
+
+      - name: Pack Nuget Package (Abstractions)
+        run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.Abstractions.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
+
       - name: Upload Nuget Package to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: CoreHelpers.WindowsAzure.Storage.Table.${{ steps.get_version.outputs.release_version }}.nupkg
           asset_name: CoreHelpers.WindowsAzure.Storage.Table.${{ steps.get_version.outputs.release_version }}.nupkg
+          tag: ${{ steps.get_version.outputs.release_tag }}
+          overwrite: true
+
+      - name: Upload Nuget Package to release (Abstractions)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: CoreHelpers.WindowsAzure.Storage.Table.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
+          asset_name: CoreHelpers.WindowsAzure.Storage.Table.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
           tag: ${{ steps.get_version.outputs.release_tag }}
           overwrite: true

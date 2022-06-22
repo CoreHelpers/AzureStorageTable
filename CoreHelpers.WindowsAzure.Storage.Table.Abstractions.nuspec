@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0"?>
 <package >
   <metadata>
-    <id>CoreHelpers.WindowsAzure.Storage.Table</id>
+    <id>CoreHelpers.WindowsAzure.Storage.Table.Abstractions</id>
     <version>0.0.2</version>
     <authors>Dirk Eisenberg</authors>
     <owners>Dirk Eisenberg</owners>
@@ -12,19 +12,15 @@
     <dependencies>
       <group targetFramework=".NETStandard2.0">
         <dependency id="NETStandard.Library" version="2.0.3" exclude="Build,Analyzers" />
-        <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
         <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
-        <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
       </group>
       <group targetFramework=".NET45">
-        <dependency id="WindowsAzure.Storage" version="8.4.0" exclude="Build,Analyzers" />
         <dependency id="System.Linq.Queryable" version="4.3.0" exclude="Build,Analyzers" />
-        <dependency id="Handlebars.Net" version="1.9.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
   <files>
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table\bin\Release\netstandard2.0\CoreHelpers.WindowsAzure.Storage.Table*.dll" target="lib\netstandard2.0" />    
-  	<file src="CoreHelpers.WindowsAzure.Storage.Table.net45\bin\Release\net45\CoreHelpers.WindowsAzure.Storage.Table*.dll" target="lib\net45" />   
+  	<file src="CoreHelpers.WindowsAzure.Storage.Table.Abstractions\bin\Release\netstandard2.0\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.dll" target="lib\netstandard2.0" />
+    <file src="CoreHelpers.WindowsAzure.Storage.Table.Abstractions.Net45\bin\Release\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.dll" target="lib\net45" />
   </files>
 </package>
