@@ -18,13 +18,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 
     public class UC16Backup : IDemoCase
     {
-        public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
+        public async Task Execute(string connectionString)
         {
             Console.WriteLine("");
             Console.WriteLine(this.GetType().FullName);
 
             // Export Table
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {
                 using (var textWriter = new StreamWriter("/tmp/test.json"))
                 {
@@ -34,13 +34,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
             }
 
             // Export to Blob
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {
-                var backupStorage = new CloudStorageAccount(new StorageCredentials(storageKey, storageSecret), endpointSuffix, true);
+                /*var backupStorage = new CloudStorageAccount(new StorageCredentials(storageKey, storageSecret), endpointSuffix, true);
 
                 var backupService = new BackupService(storageContext, backupStorage, new DemoStorageLogger());
 
-                await backupService.Backup("DemoBck", "bck01");
+                await backupService.Backup("DemoBck", "bck01");*/
             }
         }
     }

@@ -9,21 +9,21 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 {
 	public class UC06AutoCreateTable : IDemoCase
 	{
-		public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
-		{			
+        public async Task Execute(string connectionString)
+        {			
 			Console.WriteLine("");
 			Console.WriteLine(this.GetType().FullName);
 
             // auto create
-            await AutoCreateDuringStore(storageKey, storageSecret, endpointSuffix);
+            await AutoCreateDuringStore(connectionString);
 
             // read
-            await AutoCreateDuringRead(storageKey, storageSecret, endpointSuffix);
+            await AutoCreateDuringRead(connectionString);
 		}
 
-        private async Task AutoCreateDuringStore(string storageKey, string storageSecret, string endpointSuffix = null) {
+        private async Task AutoCreateDuringStore(string connectionString) {
             
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {     
                 // set the delegate
                 var stats = new DemoCaseStatsDelegate();
@@ -63,9 +63,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
             }                       
         }
 
-        private async Task AutoCreateDuringRead(string storageKey, string storageSecret, string endpointSuffix = null)
+        private async Task AutoCreateDuringRead(string connectionString)
         { 
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {                
                 // create a new user
                 var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };

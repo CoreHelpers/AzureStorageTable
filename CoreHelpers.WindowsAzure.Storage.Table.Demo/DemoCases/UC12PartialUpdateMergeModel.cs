@@ -8,12 +8,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 {
     public class UC12PartialUpdateMergeModel : IDemoCase
     {
-        public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
+        public async Task Execute(string connectionString)
         {
             Console.WriteLine("");
             Console.WriteLine(this.GetType().FullName);
 
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {                     
                 // create a new user
                 var model = new DemoEntryWithOptionalValues() { Identifier = "X" };            

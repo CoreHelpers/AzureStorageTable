@@ -20,12 +20,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 
     public class UC15DynamicTableNameChange : IDemoCase
     {
-        public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
+        public async Task Execute(string connectionString)
         {
             Console.WriteLine("");
             Console.WriteLine(this.GetType().FullName);
 
-            using (var storageContextParent = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContextParent = new StorageContext(connectionString))
             {
                 using (var storageContext = new StorageContext(storageContextParent))
                 {

@@ -16,8 +16,7 @@
 // -----------------------------------------------------------------------------------------
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
-{
-	using Microsoft.Data.OData;
+{	
 	using Microsoft.WindowsAzure.Storage.Shared.Protocol;
 	using System;
 
@@ -120,12 +119,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		/// The minimum DateTime supported.
 		/// </summary> 
 		public static readonly DateTimeOffset MinDateTime = new DateTimeOffset(1601, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
-		/// <summary>
-		/// The ODataProtocolVersion.
-		/// </summary>
-		internal static ODataVersion ODataProtocolVersion = ODataVersion.V3;
-
+		
         public const string PropertyName = "PropertyName";
 
         public const string PropertyType = "PropertyType";

@@ -10,12 +10,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 {
     public class UC13DynamicallyCreateList : IDemoCase
     {
-        public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
+        public async Task Execute(string connectionString)
         {
             Console.WriteLine("");
             Console.WriteLine(this.GetType().FullName);
 
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            using (var storageContext = new StorageContext(connectionString))
             {
                 // create model with data in list
                 var model = new DemoMeterModel() { ExtendedCosts = new List<Double>() };

@@ -22,10 +22,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
 
     public class UC19QueryFilter : IDemoCase
     {
-        public async Task Execute(string storageKey, string storageSecret, string endpointSuffix = null)
+        public async Task Execute(string connectionString)
         {
-            // Import from Blob
-            using (var storageContext = new StorageContext(storageKey, storageSecret, endpointSuffix))
+            // Import from Blob            
+            using (var storageContext = new StorageContext(connectionString))
             {
                 // create the model 
                 var models = new List<DemoEntityQuery>()

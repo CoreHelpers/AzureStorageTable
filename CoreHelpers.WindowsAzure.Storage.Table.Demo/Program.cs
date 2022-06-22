@@ -16,15 +16,28 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
     {
         static async Task Main(string[] args)
         {
-			
-			// read the config
-			var configLocation = Path.Combine("..", "Credentials.json");
-			JObject config = (JObject)JsonConvert.DeserializeObject(File.ReadAllText(configLocation));
 
+            
+
+            // read the config
+            var configLocation = Path.Combine("..", "Credentials.json");
+            
+            // build the connection string
+            var connectionString = "UseDevelopmentStorage=true";
+            if (File.Exists(configLocation))
+            {
+                var config = (JObject)JsonConvert.DeserializeObject(File.ReadAllText(configLocation));
+
+                var key = config.GetValue("key").ToString();
+                var secret = config.GetValue("secret").ToString();
+
+                connectionString = $"DefaultEndpointsProtocol=https;AccountName={key};AccountKey={secret};EndpointSuffix=core.windows.net";
+            }
+            
             // register all demo cases
             var cases = new List<IDemoCase>
             {
-                // new UC01StoreWithStaticEntityMapper(),
+                new UC01StoreWithStaticEntityMapper(),
                 // new UC02StoreWithAttributeMapper(),
                 // new UC03StoreWithAttributeMapperManualRegistration(),
                 // new UC04GetVirtualArray(),
@@ -42,24 +55,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo
                 // new UC16Backup()
                 // new UC17Restore()
                 // new UC18DateTime()
-                new UC19QueryFilter()
+                // new UC19QueryFilter()
             };
-			
-			// register demo cases for Ger Cloud
-			// var casesGer = new List<IDemoCase>
-			// {
-			// 	new UC06AutoCreateTable()				
-			// };
-			
+						
 			// execute in WW cloud 
-			Console.WriteLine("Executing Demo Cases (WW Cloud)");
-			foreach (var useCase in cases)
-				await useCase.Execute(config.GetValue("key").ToString(), config.GetValue("secret").ToString());									
-				
-			// execute in GER cloud 
-			/*Console.WriteLine("Executing Demo Cases (GER Cloud)");
-			foreach (var useCase in casesGer)
-				await useCase.Execute(config.GetValue("keyde").ToString(), config.GetValue("secretde").ToString(), "core.cloudapi.de");													*/
+			Console.WriteLine("Executing Demo Cases");
+			foreach (var useCase in cases)                
+                await useCase.Execute(connectionString);            
         }                            				
     }	
 }
