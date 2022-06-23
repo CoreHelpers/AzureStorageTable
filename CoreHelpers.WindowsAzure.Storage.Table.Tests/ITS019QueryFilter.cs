@@ -1,32 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
-using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
-using CoreHelpers.WindowsAzure.Storage.Table.Demo.Contracts;
-using CoreHelpers.WindowsAzure.Storage.Table.Models;
+﻿using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
+using Xunit.DependencyInjection;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
+namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
-    [Storable(Tablename: "DemoEntityQuery")]
-    public class DemoEntityQuery
+    [Startup(typeof(Startup))]
+    [Collection("Sequential")]
+    public class ITS019QueryFilter
     {
-        [PartitionKey] public string P { get; set; } = "P1";
+        private readonly ITestEnvironment env;
 
-        [RowKey] public string R { get; set; } = "R1";
+        public ITS019QueryFilter(ITestEnvironment env)
+        {
+            this.env = env;
+        }
 
-        public string StringField { get; set; }
-
-        public bool BoolField { get; set; }
-    }
-
-    public class UC19QueryFilter : IDemoCase
-    {
-        public async Task Execute(string connectionString)
+        [Fact]
+        public async Task VerifyQueryfilter()
         {
             // Import from Blob            
-            using (var storageContext = new StorageContext(connectionString))
+            using (var storageContext = new StorageContext(env.ConnectionString))
             {
                 // create the model 
                 var models = new List<DemoEntityQuery>()
@@ -38,17 +33,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
                     new DemoEntityQuery() {R = "E5", StringField = "Demo03", BoolField = true}
                 };
 
-                // ensure we are using the attributes
-                Console.WriteLine("Configuring Entity Mappers");
+                // ensure we are using the attributes                
                 storageContext.AddAttributeMapper(typeof(DemoEntityQuery));
-
-                // ensure the table exists
-                Console.WriteLine("Create Tables");
-                await storageContext.CreateTableAsync<DemoEntityQuery>();
-
-                // inser the model
-                Console.WriteLine("Insert Models");
-                await storageContext.MergeOrInsertAsync<DemoEntityQuery>(models);
+                
+                // inser the model                
+                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoEntityQuery>(models);
 
                 // buidl a filter 
                 var queryFilter = new List<QueryFilter>()
@@ -76,20 +65,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.DemoCases
                     },
                 };
 
-                // query all
-                Console.WriteLine("Query all Models");
+                // query all                
                 var result = (await storageContext.QueryAsync<DemoEntityQuery>(null, queryFilter)).ToList();
-
-                if (result.Count != 3)
-                    Console.WriteLine("Oh no");
-
+                Assert.Equal(3, result.Count());
+                
                 result = (await storageContext.QueryAsync<DemoEntityQuery>("P1", queryFilter)).ToList();
-
-                if (result.Count != 3)
-                    Console.WriteLine("Oh no");
-
-                // Clean up 
-                Console.WriteLine("Removing all entries");
+                Assert.Equal(3, result.Count());
+                
+                // Clean up                 
                 var all = await storageContext.QueryAsync<DemoEntityQuery>();
                 await storageContext.DeleteAsync<DemoEntityQuery>(all);
             }

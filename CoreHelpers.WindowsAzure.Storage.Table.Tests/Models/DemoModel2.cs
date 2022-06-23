@@ -1,17 +1,17 @@
 ﻿using System;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Demo.Models
+namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 {
-    [Storable(Tablename: "DemoDatetimeModel")]
-    public class DatetimeModel
+    [Storable]
+    public class DemoModel2
     {
+
         [PartitionKey]
         public string P { get; set; } = "P1";
 
         [RowKey]
         public string R { get; set; } = "R1";
-
-        public DateTime ActivatedAt { get; set; } = DateTime.MinValue;
     }
 }
+
