@@ -56,7 +56,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				Assert.Equal("112233", result.First().UUID);
 				Assert.Equal("{\"Value\":\"Hello 23\"}", result.First().Data2);
 				Assert.Equal("{\"HEllo\":\"world\"}", result.First().Data);
-				
+
 			}
 
 			using (var storageContext = new StorageContext(env.ConnectionString))
@@ -71,6 +71,54 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				Assert.NotNull(result);
 				Assert.Equal(0, result.Count());
 			}
-		}	
+		}
+
+		[Fact]
+		public async Task VerifyDictionary()
+		{
+			using (var storageContext = new StorageContext(env.ConnectionString))
+			{
+				// create the model 
+				var model = new DictionaryModel() { Id = Guid.NewGuid().ToString() };
+
+				// ensure we are using the attributes				
+				storageContext.AddAttributeMapper(typeof(DictionaryModel));
+
+				// inser the model                
+				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DictionaryModel>(model);
+
+				// query all				
+				var result = await storageContext.QueryAsync<DictionaryModel>(model.Id, model.Id);
+				Assert.Equal(model.Id, result.Id);
+				Assert.Equal(0, model.Propertiers.Count());
+
+				// cleanup				
+				var cleanUpItems = await storageContext.QueryAsync<DictionaryModel>();				
+				await storageContext.DeleteAsync<DictionaryModel>(cleanUpItems, true);
+
+			}
+		}
+
+		[Fact]
+		public async Task DeleteMultiPartitionEntries()
+		{
+			using (var storageContext = new StorageContext(env.ConnectionString))
+			{
+				// ensure we are using the attributes				
+				storageContext.AddAttributeMapper(typeof(DictionaryModel));
+
+				// inser the model                
+				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DictionaryModel>(new DictionaryModel() { Id = Guid.NewGuid().ToString() });
+				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DictionaryModel>(new DictionaryModel() { Id = Guid.NewGuid().ToString() });
+				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DictionaryModel>(new DictionaryModel() { Id = Guid.NewGuid().ToString() });
+				
+				// cleanup				
+				var cleanUpItems = await storageContext.QueryAsync<DictionaryModel>();
+				await storageContext.DeleteAsync<DictionaryModel>(cleanUpItems, true);
+
+				var zeroItems = await storageContext.QueryAsync<DictionaryModel>();
+				Assert.Equal(0, zeroItems.Count());
+			}
+		}
 	}
 }

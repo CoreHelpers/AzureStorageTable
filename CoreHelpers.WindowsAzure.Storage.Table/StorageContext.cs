@@ -10,6 +10,7 @@ using System.IO;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
+using System.Runtime.ExceptionServices;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -395,7 +396,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 		public async Task DeleteAsync<T>(T model) where T: new() 
 		{
-			await this.StoreAsync(nStoreOperation.delete, new List<T>() { model });
+			await DeleteAsync<T>(new List<T>() { model });			
 		}
 
 		IStorageContext IStorageContext.OverrideTableName<T>(string table)
@@ -403,9 +404,44 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			throw new NotImplementedException();
 		}
 
-		public async Task DeleteAsync<T>(IEnumerable<T> models) where T: new() 
+		public async Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T: new() 
 		{
-			await this.StoreAsync(nStoreOperation.delete, models);
+			try
+			{
+				await this.StoreAsync(nStoreOperation.delete, models);
+			} catch(Exception e)
+            {
+				if (e.Message.Equals("All entities in a given batch must have the same partition key.") && allowMultiPartionRemoval)
+                {
+					// build a per partition key cache
+					var partionKeyDictionary = new Dictionary<string, List<T>>();
+
+					// lookup the entitymapper
+					var entityMapper = _entityMapperRegistry[typeof(T)];
+
+					// split our entities
+					foreach (var model in models)
+					{
+						// convert the model to a dynamic entity
+						var t = new DynamicTableEntity<T>(model, entityMapper);
+
+						// lookup the partitionkey list
+						if (!partionKeyDictionary.ContainsKey(t.PartitionKey))
+							partionKeyDictionary.Add(t.PartitionKey, new List<T>());
+
+						// add the model to the list
+						partionKeyDictionary[t.PartitionKey].Add(t.Model);
+					}
+
+					// remove the different batches
+					foreach (var kvp in partionKeyDictionary)
+						await DeleteAsync<T>(kvp.Value);
+				}
+				else
+                {
+					ExceptionDispatchInfo.Capture(e).Throw();
+				}			
+            }
 		}
 
 		internal async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
