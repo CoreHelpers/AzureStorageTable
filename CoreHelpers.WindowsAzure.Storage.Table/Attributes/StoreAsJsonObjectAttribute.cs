@@ -38,7 +38,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 			if (ObjectType != null && typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(ObjectType) && ObjectType.GetTypeInfo().UnderlyingSystemType != null)
 			{				
 				var convertedElements = JsonConvert.DeserializeObject(entityProperty.StringValue, ObjectType);
-				return Activator.CreateInstance(property.PropertyType, convertedElements);
+				try
+				{
+					return Activator.CreateInstance(property.PropertyType, convertedElements);
+				} catch(MissingMethodException)
+                {
+					return Activator.CreateInstance(ObjectType, convertedElements);
+				}
 			} else if (ObjectType != null)
 			{
 				return JsonConvert.DeserializeObject(entityProperty.StringValue, ObjectType);
