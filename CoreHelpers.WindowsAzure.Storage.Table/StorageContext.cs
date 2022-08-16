@@ -170,8 +170,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _entityMapperRegistry.Keys;
         }
 
-        public void OverrideTableName<T>(string tableName) {
-            OverrideTableName(typeof(T), tableName);
+        public void OverrideTableName<T>(string table) where T : new() { 
+			OverrideTableName(typeof(T), table);
         }
 
         public void OverrideTableName(Type entityType, string tableName)
@@ -398,12 +398,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
 			await DeleteAsync<T>(new List<T>() { model });			
 		}
-
-		IStorageContext IStorageContext.OverrideTableName<T>(string table)
-		{
-			throw new NotImplementedException();
-		}
-
+		
 		public async Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T: new() 
 		{
 			try
@@ -613,6 +608,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             await logsTable.CreateIfNotExistsAsync();
             var importer = new DataImportService(this);
             await importer.ImportFromJsonStreamAsync(tableName, reader);
-        }
+        }        
     }
 }

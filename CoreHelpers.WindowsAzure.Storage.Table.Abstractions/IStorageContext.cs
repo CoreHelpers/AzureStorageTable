@@ -28,7 +28,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
 
         Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T : new();
 
-        IStorageContext OverrideTableName<T>(string table) where T : new();
+        void OverrideTableName<T>(string table) where T : new();
 
         Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new();
 
