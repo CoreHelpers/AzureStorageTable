@@ -1,9 +1,6 @@
 name: CI Build
 
 on: [push, pull_request, workflow_dispatch]
-  
-env:
-  XUC: ${{ secrets.XUNIT_CONNECTIONSTRING }}
 
 jobs:
   build-core:
@@ -13,7 +10,9 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 6.0.x        
+      env:
+        STORAGE: ${{secrets.XUNIT_CONNECTIONSTRING}}
     - name: Restore
       run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table.sln
       env: 
@@ -23,4 +22,4 @@ jobs:
       env: 
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     - name: Test
-      run: dotnet test CoreHelpers.WindowsAzure.Storage.Table.sln -e STORAGE="${{ env.XUC }}"
+      run: dotnet test CoreHelpers.WindowsAzure.Storage.Table.sln
