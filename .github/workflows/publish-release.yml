@@ -62,4 +62,4 @@ jobs:
           overwrite: true
           
       - name: Publish NuGet
-        run: dotnet nuget push ./*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source "github"  
+        run: dotnet nuget push ./*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} -shttps://api.nuget.org/v3/index.json
