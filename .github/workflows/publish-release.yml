@@ -31,14 +31,9 @@ jobs:
         run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table.sln
         env: 
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-          
-      - name: Build .NET Core
-        run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
-        env: 
-          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-          
+                    
       - name: Build
-        run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table.sln
+        run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table.sln -p:Version=${{ steps.get_version.outputs.release_version }}
         env: 
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
                     
