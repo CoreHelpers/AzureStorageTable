@@ -6,6 +6,7 @@ using Xunit.DependencyInjection;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
@@ -27,8 +28,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 			Console.WriteLine(this.GetType().FullName);
 						
             using (var storageContext = new StorageContext(env.ConnectionString))
-            {             		 			     	
-				storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");								
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");								
 				storageContext.CreateTable<UserModel2>(true);
 				
 				var data = new List<UserModel2>() {
@@ -55,7 +59,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// Clean up 				
 				await storageContext.DeleteAsync<UserModel2>(allitems);
 				var result = await storageContext.QueryAsync<UserModel2>();
-				Assert.Equal(0, result.Count());				
+				Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<UserModel2>();
             }						
 		}	
 	}

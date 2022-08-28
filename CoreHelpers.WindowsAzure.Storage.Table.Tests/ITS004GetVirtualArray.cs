@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -22,9 +23,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		public async Task VerifyVirtualArray()
 		{									
             using (var storageContext = new StorageContext(env.ConnectionString))
-            {             		 
-			    // create a virtual array model
-            	var model = new VArrayModel() { UUID = "112233" };
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // create a virtual array model
+                var model = new VArrayModel() { UUID = "112233" };
 				model.DataElements.Add(2);
 				model.DataElements.Add(3);
 				model.DataElements.Add(4);
@@ -51,7 +55,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<VArrayModel>(result);
                 result = await storageContext.QueryAsync<VArrayModel>();
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count());                
+                Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<VArrayModel>();
             }						
 		}	
 	}

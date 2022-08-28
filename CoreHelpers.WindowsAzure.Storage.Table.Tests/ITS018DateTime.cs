@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -25,6 +26,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
             // Import from Blob
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create the model 
                 var model = new DatetimeModel() { ActivatedAt = DateTime.Now.ToUniversalTime() };
 
@@ -44,6 +48,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 
                 // Clean up                 
                 await storageContext.DeleteAsync<DatetimeModel>(result);
+                await storageContext.DropTableAsync<DatetimeModel>();
             }
         }
     }

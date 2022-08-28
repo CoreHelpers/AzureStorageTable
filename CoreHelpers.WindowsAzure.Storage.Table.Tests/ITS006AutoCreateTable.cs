@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Microsoft.WindowsAzure.Storage;
 using Xunit.DependencyInjection;
@@ -26,6 +27,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create a new user
                 var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
 
@@ -59,6 +63,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         {
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create a new user
                 var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
 
@@ -74,6 +81,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // query all by creating a new table
                 var result = await storageContext.EnableAutoCreateTable().QueryAsync<UserModel>();
                 Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<UserModel>();
             }
         }
     }

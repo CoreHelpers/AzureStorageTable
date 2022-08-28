@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
@@ -24,8 +25,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
             // Export Table
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // ensure we have a model registered in the correct table
-                var tableName1 = $"BU{Guid.NewGuid().ToString()}".Replace("-", "");
+                var tableName1 = $"BU".Replace("-", "");
                 storageContext.AddAttributeMapper(typeof(DemoModel2), tableName1);
 
                 // create model with data in list

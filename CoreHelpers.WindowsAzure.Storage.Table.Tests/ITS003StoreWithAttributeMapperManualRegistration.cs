@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -22,9 +23,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         public async Task VerifyManualRegistration()
         {			
 			using (var storageContext = new StorageContext(env.ConnectionString))
-            {     
-        		// create a new user            	
-            	var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };            
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // create a new user            	
+                var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };            
         		var vpmodel = new VirtualPartKeyDemoModel() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };            
         
                 // ensure we are using the attributes                
@@ -64,6 +68,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 resultVP = await storageContext.QueryAsync<VirtualPartKeyDemoModel>();
                 Assert.NotNull(resultVP);
                 Assert.Equal(0, resultVP.Count());
+
+                await storageContext.DropTableAsync<UserModel2>();
+                await storageContext.DropTableAsync<VirtualPartKeyDemoModel>();
             }
         }	
 	}

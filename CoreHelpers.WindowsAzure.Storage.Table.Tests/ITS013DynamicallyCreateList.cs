@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
@@ -24,6 +25,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         {
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create model with data in list
                 var model = new DemoMeterModel() { ExtendedCosts = new List<Double>() };
                 model.ExtendedCosts.Add(5.5);
@@ -52,6 +56,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DeleteAsync<DemoMeterModel>(result);
                 var elements = await storageContext.QueryAsync<DemoMeterModel>();
                 Assert.Equal(0, elements.Count());
+
+                await storageContext.DropTableAsync<DemoMeterModel>();
             }       
         }
 
@@ -60,6 +66,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         {
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create model with data in list
                 var model = new NullListModel();
 
@@ -85,6 +94,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DeleteAsync<NullListModel>(result);
                 var elements = await storageContext.QueryAsync<NullListModel>();
                 Assert.Equal(0, elements.Count());
+
+                await storageContext.DropTableAsync<NullListModel>();
             }
         }
         

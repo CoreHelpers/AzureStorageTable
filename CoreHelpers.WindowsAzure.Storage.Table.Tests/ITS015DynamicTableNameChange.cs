@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -25,10 +27,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
             
             using (var storageContextParent = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContextParent.SetTableContext();
+
                 using (var storageContext = new StorageContext(storageContextParent))
                 {
-                    var tableName1 = $"MT{Guid.NewGuid().ToString()}".Replace("-", "");
-                    var tableName2 = $"MT{Guid.NewGuid().ToString()}".Replace("-", "");
+                    var tableName1 = $"MT1";
+                    var tableName2 = $"MT2";
 
                     // create model with data in list
                     var model = new DemoModel2() { P = "1", R = "2" };

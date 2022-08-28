@@ -1,6 +1,7 @@
 ﻿using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -23,6 +24,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
             // Import from Blob            
             using (var storageContext = new StorageContext(env.ConnectionString))
             {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create the model 
                 var models = new List<DemoEntityQuery>()
                 {
@@ -75,6 +79,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up                 
                 var all = await storageContext.QueryAsync<DemoEntityQuery>();
                 await storageContext.DeleteAsync<DemoEntityQuery>(all);
+                await storageContext.DropTableAsync<DemoEntityQuery>();
             }
         }
     }

@@ -6,6 +6,7 @@ using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using Xunit.DependencyInjection;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
@@ -24,9 +25,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		public async Task VerifyReadingInterfaceValues()
 		{			
 			using (var storageContext = new StorageContext(env.ConnectionString))
-            {             		
-				// create a new user								
-				var user02 = new UserModel3() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // create a new user								
+                var user02 = new UserModel3() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
 				user02.Codes.Add(new Code() { CodeType = "x1", CodeValue = "x2" });
 				user02.Codes.Add(new Code() { CodeType = "x3", CodeValue = "x4" });
 			     			     	
@@ -44,7 +48,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<UserModel3>(result);
 				result = await storageContext.QueryAsync<UserModel3>();
 				Assert.Equal(0, result.Count());
-			}						
+
+                await storageContext.DropTableAsync<UserModel3>();
+            }						
 		}	
 	}
 }

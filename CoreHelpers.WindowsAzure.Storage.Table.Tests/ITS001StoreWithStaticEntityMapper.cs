@@ -1,6 +1,7 @@
 ﻿using System;
 using CoreHelpers.WindowsAzure.Storage.Table.Delegates;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -22,8 +23,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         {
 			using (var scp = new StorageContext(env.ConnectionString))
 			{
-				// unification uuid
-				var runId = Guid.NewGuid().ToString();
+				// set the tablename context
+				scp.SetTableContext();
+
+                // unification uuid
+                var runId = Guid.NewGuid().ToString();
 
 				// create a new user
 				var user = new UserModel() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
@@ -50,11 +54,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				Assert.Equal("Mueller", result.First().LastName);
 				Assert.Equal($"em@acme.org.{runId}", result.First().Contact);
 
-				// Clean up 
-				await scp.DeleteAsync<UserModel>(result);
-				result = await scp.QueryAsync<UserModel>();
-				Assert.NotNull(result);
-				Assert.Equal(0, result.Count());				
+				// Clean up
+				await scp.DropTableAsync<UserModel>();
+				Assert.False(await scp.ExistsTableAsync<UserModel>());				
 			}
 		}
 
@@ -63,8 +65,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		{
 			using (var scp = new StorageContext(env.ConnectionString))
 			{
-				// create model
-				var vpmodel = new VirtualPartitionKeyDemoModelPOCO() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
+                // set the tablename context
+                scp.SetTableContext();
+
+                // create model
+                var vpmodel = new VirtualPartitionKeyDemoModelPOCO() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
 				
 				// configure the entity mapper				
 				scp.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), new DynamicTableEntityMapper() { TableName = "VirtualPartitionKeyDemoModelPOCO", PartitionKeyFormat = "{{Value1}}-{{Value2}}", RowKeyFormat = "{{Value2}}-{{Value3}}" });
@@ -88,10 +93,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				Assert.Equal("ghi", result.First().Value3);
 
 				// Clean up 
-				await scp.DeleteAsync<VirtualPartitionKeyDemoModelPOCO>(result);
-				result = await scp.QueryAsync<VirtualPartitionKeyDemoModelPOCO>();
-				Assert.NotNull(result);
-				Assert.Equal(0, result.Count());				
+				await scp.DropTableAsync<VirtualPartitionKeyDemoModelPOCO>();
+                Assert.False(await scp.ExistsTableAsync<VirtualPartitionKeyDemoModelPOCO>());                
 			}
 		}
 
@@ -100,8 +103,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         {
 			using (var scp = new StorageContext(env.ConnectionString))
 			{
-				// set the delegate
-				var stats = new StorageContextStatsDelegate();
+                // set the tablename context
+                scp.SetTableContext();
+
+                // set the delegate
+                var stats = new StorageContextStatsDelegate();
 				scp.SetDelegate(stats);
 
 				// unification uuid
@@ -133,7 +139,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// verify stats
 				Assert.Equal(1, stats.QueryOperations);
 				Assert.Equal(2, stats.StoreOperations.Values.Sum());
-			}
+
+				// Drop the table
+                await scp.DropTableAsync<UserModel>();
+                Assert.False(await scp.ExistsTableAsync<UserModel>());
+            }
 		}
 	}
 }

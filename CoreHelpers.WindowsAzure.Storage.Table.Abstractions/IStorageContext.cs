@@ -28,10 +28,23 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
 
         Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T : new();
 
+        void SetTableNamePrefix(string tableNamePrefix);
+
         void OverrideTableName<T>(string table) where T : new();
 
         Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new();
 
         Task MergeOrInsertAsync<T>(T model) where T : new();
+
+        Task CreateTableAsync<T>(bool ignoreErrorIfExists = true);
+
+        void CreateTable<T>(bool ignoreErrorIfExists = true);
+
+        Task <bool> ExistsTableAsync<T>();
+
+        Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true);
+
+        void DropTable<T>(bool ignoreErrorIfNotExists = true);
+
     }
 }

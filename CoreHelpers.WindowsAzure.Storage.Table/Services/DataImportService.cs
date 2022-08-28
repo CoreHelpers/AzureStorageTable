@@ -22,7 +22,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
         public async Task ImportFromJsonStreamAsync(string tableName, StreamReader streamReader, Action<int> progress = null) {
 
             // ensure table exists
-            var targetTable = storageContext.GetTableReference(tableName);
+            var targetTable = storageContext.RequestTableReference(tableName);
             if (!await targetTable.ExistsAsync())
                 await CreateAzureTableAsync(targetTable);
                 

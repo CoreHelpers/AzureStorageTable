@@ -1,5 +1,6 @@
 ﻿using System;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -20,7 +21,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         public async Task VerifyAttributeMapper()
         {
             using (var storageContext = new StorageContext(env.ConnectionString))
-            {                
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
                 // create a new user
                 var user = new UserModel2() { FirstName = "Egon", LastName = "Mueller", Contact = "em@acme.org" };
 
@@ -44,7 +48,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DeleteAsync<UserModel2>(result);
                 result = await storageContext.QueryAsync<UserModel2>();
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count());                
+                Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<UserModel2>();
             }
         }
     }

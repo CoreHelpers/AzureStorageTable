@@ -11,6 +11,7 @@ using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
 using System.Runtime.ExceptionServices;
+using System.Text.RegularExpressions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -34,7 +35,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
 		private IStorageContextDelegate _delegate { get; set; }
-		
+		private string _tableNamePrefix;
+
 		public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
 		{
 			var connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
@@ -59,7 +61,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
             // we are using the delegate
 			this.SetDelegate(parentContext._delegate);
-		}
+
+			// take the tablename prefix
+			_tableNamePrefix = parentContext._tableNamePrefix;
+        }
 
 		public void Dispose()
 		{
@@ -170,6 +175,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _entityMapperRegistry.Keys;
         }
 
+        public void SetTableNamePrefix(string tableNamePrefix)
+        {
+			_tableNamePrefix = tableNamePrefix;
+        }
+
         public void OverrideTableName<T>(string table) where T : new() { 
 			OverrideTableName(typeof(T), table);
         }
@@ -227,6 +237,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 await table.DeleteIfExistsAsync();
             else
                 await table.DeleteAsync();
+        }
+
+        public async Task<bool> ExistsTableAsync<T>()
+        {
+            CloudTable table = GetTableReference(GetTableName(typeof(T)));
+			return await table.ExistsAsync();
         }
 
         public async Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true)
@@ -301,10 +317,19 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			var entityMapper = _entityMapperRegistry[entityType];
 
 			// get the table name
-			return entityMapper.TableName;
-		}
-		
-		public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
+			return GetTableName(entityMapper.TableName);
+        }
+
+        private string GetTableName(string tableName)
+        {
+			// get the table name
+			if (String.IsNullOrEmpty(_tableNamePrefix))
+				return tableName;
+			else
+				return Regex.Replace($"{_tableNamePrefix}{tableName}", "[^A-Za-z0-9]", "");
+        }
+
+        public async Task StoreAsync<T>(nStoreOperation storaeOperationType, IEnumerable<T> models) where T : new()
 		{
 			try
 			{
@@ -559,7 +584,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				return result.Items;					
 		}
 	
-		internal CloudTable GetTableReference(string tableName) {
+		private CloudTable GetTableReference(string tableName) {
 			
 			// create the table client 
 			var storageTableClient = _storageAccount.CreateCloudTableClient();
@@ -570,9 +595,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			// Retrieve a reference to the table.
 			return tableClient.GetTableReference(tableName);
 		}
-		
-		
-		public StorageContextQueryCursor<T> QueryPaged<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0) where T : new()
+
+        internal CloudTable RequestTableReference(string tableName)
+        {
+			var tableNamePatched = GetTableName(tableName);
+			return GetTableReference(tableNamePatched);
+        }
+
+
+        public StorageContextQueryCursor<T> QueryPaged<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0) where T : new()
 		{
 			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, queryFilters, maxItems);
 		}
@@ -596,16 +627,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         public async Task ExportToJsonAsync(string tableName, TextWriter writer)
         {
-            var logsTable = GetTableReference(DataExportService.TableName);
-            await logsTable.CreateIfNotExistsAsync();
+            var logsTable = GetTableReference(GetTableName(DataExportService.TableName));
+
+			if (!await logsTable.ExistsAsync())
+				await logsTable.CreateIfNotExistsAsync();
+
             var exporter = new DataExportService(this);
             await exporter.ExportToJson(tableName, writer);
         }
 
         public async Task ImportFromJsonAsync(string tableName, StreamReader reader) 
         {
-            var logsTable = GetTableReference(DataImportService.TableName);
-            await logsTable.CreateIfNotExistsAsync();
+            var logsTable = GetTableReference(GetTableName(DataImportService.TableName));
+
+            if (!await logsTable.ExistsAsync())
+                await logsTable.CreateIfNotExistsAsync();
+            
             var importer = new DataImportService(this);
             await importer.ImportFromJsonStreamAsync(tableName, reader);
         }        

@@ -31,11 +31,13 @@
     <None Remove="Contracts\" />
     <None Remove="Xunit.DependencyInjection" />
     <None Remove="TestEnvironments\" />
+    <None Remove="Extensions\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Contracts\" />
     <Folder Include="TestEnvironments\" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj" />

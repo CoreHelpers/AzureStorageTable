@@ -20,7 +20,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
         {
             try
             {
-                var table = storageContext.GetTableReference(tableName);
+                var table = storageContext.RequestTableReference(tableName);
 
                 var existsTable = await table.ExistsAsync();
                 if (!existsTable)

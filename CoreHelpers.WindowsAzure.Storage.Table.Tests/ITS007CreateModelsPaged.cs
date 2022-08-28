@@ -5,6 +5,7 @@ using Xunit.DependencyInjection;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
@@ -26,8 +27,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 			Console.WriteLine(this.GetType().FullName);
 						
             using (var storageContext = new StorageContext(env.ConnectionString))
-            {     
-        		// ensure we are using the attributes				
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // ensure we are using the attributes				
                 storageContext.AddAttributeMapper(typeof(UserModel2), "DemoUserModel2");
                 
                 // create tables                
@@ -64,7 +68,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up 				
 				await storageContext.DeleteAsync<UserModel2>(result);
 				result = await storageContext.QueryAsync<UserModel2>();
-				Assert.Equal(0, result.Count());				
+				Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<UserModel2>();
             }						
 		}
 
@@ -73,8 +79,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		{
 			using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// ensure we are using the attributes
-				storageContext.AddAttributeMapper(typeof(HugeDemoEntry));
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // ensure we are using the attributes
+                storageContext.AddAttributeMapper(typeof(HugeDemoEntry));
 
 				// delete all
 				var result = await storageContext.EnableAutoCreateTable().QueryAsync<HugeDemoEntry>();
@@ -107,8 +116,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// remove all entries				
 				await storageContext.DeleteAsync<HugeDemoEntry>(items);
 				result = await storageContext.QueryAsync<HugeDemoEntry>();
-				Assert.Equal(0, result.Count());				
-			}
+				Assert.Equal(0, result.Count());
+
+                await storageContext.DropTableAsync<HugeDemoEntry>();
+            }
 		}
 	}
 }

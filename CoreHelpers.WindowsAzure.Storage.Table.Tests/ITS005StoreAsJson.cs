@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
 
@@ -21,10 +22,15 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		[Fact]
 		public async Task VerifyJsonPayloads()
 		{
-			using (var storageContext = new StorageContext(env.ConnectionString))
+			var ctx = StorageContextExtensions.BuildTableContext();
+
+            using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// create the model 
-				var model = new JObjectModel() { UUID = "112233" };
+                // set the tablename context
+                storageContext.SetTableNamePrefix(ctx);
+
+                // create the model 
+                var model = new JObjectModel() { UUID = "112233" };
 				model.Data.Add("HEllo", "world");
 				model.Data2.Value = "Hello 23";
 
@@ -48,8 +54,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 			using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// ensure we are using the attributes				
-				storageContext.AddAttributeMapper(typeof(JObjectModelVerify));
+                // set the tablename context
+                storageContext.SetTableNamePrefix(ctx);
+
+                // ensure we are using the attributes				
+                storageContext.AddAttributeMapper(typeof(JObjectModelVerify));
 
 				var result = await storageContext.QueryAsync<JObjectModelVerify>();
 				Assert.Equal(1, result.Count());
@@ -61,8 +70,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 			using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// ensure we are using the attributes				
-				storageContext.AddAttributeMapper(typeof(JObjectModel));
+                // set the tablename context
+                storageContext.SetTableNamePrefix(ctx);
+
+                // ensure we are using the attributes				
+                storageContext.AddAttributeMapper(typeof(JObjectModel));
 
 				// Clean up
 				var result = await storageContext.QueryAsync<JObjectModel>();
@@ -70,7 +82,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				result = await storageContext.QueryAsync<JObjectModel>();
 				Assert.NotNull(result);
 				Assert.Equal(0, result.Count());
-			}
+
+                await storageContext.DropTableAsync<JObjectModel>();
+            }
 		}
 
 		[Fact]
@@ -78,8 +92,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		{
 			using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// create the model 
-				var model = new DictionaryModel() { Id = Guid.NewGuid().ToString() };
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // create the model 
+                var model = new DictionaryModel() { Id = Guid.NewGuid().ToString() };
 
 				// ensure we are using the attributes				
 				storageContext.AddAttributeMapper(typeof(DictionaryModel));
@@ -95,7 +112,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// cleanup				
 				var cleanUpItems = await storageContext.QueryAsync<DictionaryModel>();				
 				await storageContext.DeleteAsync<DictionaryModel>(cleanUpItems, true);
-			}
+
+                await storageContext.DropTableAsync<DictionaryModel>();
+            }
 		}
 
 		[Fact]
@@ -103,8 +122,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		{
 			using (var storageContext = new StorageContext(env.ConnectionString))
 			{
-				// ensure we are using the attributes				
-				storageContext.AddAttributeMapper(typeof(DictionaryModel));
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // ensure we are using the attributes				
+                storageContext.AddAttributeMapper(typeof(DictionaryModel));
 
 				// inser the model                
 				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DictionaryModel>(new DictionaryModel() { Id = Guid.NewGuid().ToString() });
@@ -117,7 +139,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 				var zeroItems = await storageContext.QueryAsync<DictionaryModel>();
 				Assert.Equal(0, zeroItems.Count());
-			}
+
+                await storageContext.DropTableAsync<DictionaryModel>();
+            }
 		}
 	}
 }
