@@ -4,11 +4,23 @@
     <TargetFrameworks>netstandard2.0;netstandard2.1;net48</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>6</LangVersion>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/CoreHelpers/AzureStorageTable</PackageProjectUrl>   
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/CoreHelpers/AzureStorageTable.git</RepositoryUrl>    
+    <Description>This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity from ITableEntity or TableEntity looks like a step backwards. The current implementation is intended to be an abstraction to store every existing entity into Azure Table Store.</Description>
+    <PackageTags>poco dotnet-core dotnet azure azure-storage azure-table-storage</PackageTags>
+    <Copyright>(c) Dirk Eisenberg</Copyright>    
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
+  <ItemGroup>
+     <None Include="..\LICENSE" Pack="true" PackagePath=""/>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
