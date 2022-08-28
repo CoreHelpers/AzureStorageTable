@@ -6,14 +6,14 @@ on:
     
 jobs:
   build-nuget:
-    runs-on: windows-2019
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       
-      - name: Setup .NET Core
+      - name: Setup .NET
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: 2.0.x
+          dotnet-version: 6.0.x 
 
       - name: Get ReleaseVersion from Tag
         uses: actions/github-script@v5.0.0
@@ -39,8 +39,8 @@ jobs:
           path: '${{ github.workspace }}/CoreHelpers.WindowsAzure.Storage.Table.Abstractions'
           version: ${{ steps.get_version.outputs.release_version }}
       
-      - name: Restore dependencies
-        run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table/CoreHelpers.WindowsAzure.Storage.Table.csproj
+      - name: Restore
+        run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table.sln
         env: 
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
           
@@ -49,23 +49,19 @@ jobs:
         env: 
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
           
-      - name: Setup msbuild
-        uses: microsoft/setup-msbuild@v1
-        
-      - name: Setup NuGet.exe for use with actions
-        uses: NuGet/setup-nuget@v1.0.5      
-        
-      - name: Restore NuGets
-        run: nuget restore
-        
-      - name: Build .NET Desktop
-        run: msbuild CoreHelpers.WindowsAzure.Storage.Table.Net45/CoreHelpers.WindowsAzure.Storage.Table.Net45.csproj /p:Configuration=Release
+      - name: Build
+        run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table.sln
+        env: 
+          DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+          
+      - name: Test
+        run: dotnet test --no-restore CoreHelpers.WindowsAzure.Storage.Table.sln -e STORAGE="${{ secrets.XUNIT_CONNECTIONSTRING }}"
+          
+      - name: Pack Abstraction
+        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table.Abstraction --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
 
-      - name: Pack Nuget Package
-        run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
-
-      - name: Pack Nuget Package (Abstractions)
-        run: nuget pack CoreHelpers.WindowsAzure.Storage.Table.Abstractions.nuspec -Version ${{ steps.get_version.outputs.release_version }} -Verbosity detailed
+      - name: Pack Implementation
+        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
 
       - name: Upload Nuget Package to release
         uses: svenstaro/upload-release-action@v2
