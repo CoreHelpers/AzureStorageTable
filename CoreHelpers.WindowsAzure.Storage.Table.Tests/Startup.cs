@@ -8,7 +8,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
     {               
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<ITestEnvironment, CredentialsFilesEnvironment>();
+            services.AddTransient<ITestEnvironment, UnittestStorageEnvironment>();            
         }
     }
 }
