@@ -20,4 +20,4 @@ jobs:
       env: 
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
     - name: Test
-      run: dotnet test CoreHelpers.WindowsAzure.Storage.Table.sln -e STORAGE="${{ secrets.XUNIT_CONNECTIONSTRING }}"
+      run: dotnet test --no-restore CoreHelpers.WindowsAzure.Storage.Table.sln -e STORAGE="${{ secrets.XUNIT_CONNECTIONSTRING }}"
