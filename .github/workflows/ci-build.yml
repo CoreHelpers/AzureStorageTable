@@ -11,7 +11,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
-    - name: Restore dependencies
+    - name: Restore
       run: dotnet restore CoreHelpers.WindowsAzure.Storage.Table.sln
       env: 
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -19,3 +19,5 @@ jobs:
       run: dotnet build --no-restore -c Release CoreHelpers.WindowsAzure.Storage.Table.sln
       env: 
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    - name: Test
+      run: dotnet test CoreHelpers.WindowsAzure.Storage.Table.sln -e STORAGE="${{ secrets.XUNIT_CONNECTIONSTRING }}"
