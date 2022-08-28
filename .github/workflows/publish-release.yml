@@ -43,7 +43,7 @@ jobs:
           DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
                     
       - name: Pack Abstraction
-        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table.Abstraction --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
+        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table.Abstractions --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
 
       - name: Pack Implementation
         run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
