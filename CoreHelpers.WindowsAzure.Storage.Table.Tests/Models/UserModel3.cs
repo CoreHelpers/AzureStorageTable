@@ -11,12 +11,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 		public string P { get; set; } = "Partition01";
 		
         [RowKey]
-        public string Contact { get; set; }
-    
-		public string FirstName { get; set; } 
-		public string LastName { get; set; }
-		
-		[StoreAsJsonObject(typeof(List<Code>))]
+        public string Contact { get; set; } = String.Empty;
+
+        public string FirstName { get; set; } = String.Empty;
+        public string LastName { get; set; } = String.Empty;
+
+        [StoreAsJsonObject(typeof(List<Code>))]
 		public List<ICode> Codes { get; set; } = new List<ICode>();
 	}
 	
@@ -28,7 +28,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 
 	public class Code : ICode
 	{
-		public string CodeValue { get; set; }
-		public string CodeType { get; set; }
-	}
+		public string CodeValue { get; set; } = String.Empty;
+        public string CodeType { get; set; } = String.Empty;
+    }
 }

@@ -11,17 +11,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 
 	public class JDemo2 : IDemo2
 	{
-		public string Value { get; set; }
-	}
+		public string Value { get; set; } = String.Empty;
+    }
 
 	[Storable(Tablename: "JObjectModel")]
 	public class JObjectModel
 	{
 		[PartitionKey]
 		[RowKey]
-		public string UUID { get; set; }
+		public string UUID { get; set; } = String.Empty;
 
-		[StoreAsJsonObject]
+        [StoreAsJsonObject]
 		public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
 
 		[StoreAsJsonObject(typeof(JDemo2))]
@@ -33,10 +33,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 	{
 		[PartitionKey]
 		[RowKey]
-		public string UUID { get; set; }
-		
-		public String Data { get; set; }
-		
-		public String Data2 { get; set; }
-	}
+		public string UUID { get; set; } = String.Empty;
+
+        public String Data { get; set; } = String.Empty;
+
+        public String Data2 { get; set; } = String.Empty;
+    }
 }

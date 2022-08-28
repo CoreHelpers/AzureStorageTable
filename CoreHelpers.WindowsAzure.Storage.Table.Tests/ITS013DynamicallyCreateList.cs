@@ -66,6 +66,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // ensure we are using the attributes                
                 storageContext.AddAttributeMapper(typeof(NullListModel));
 
+                // build the table name
+                var tableName = $"NullListModel{Guid.NewGuid().ToString().Replace("-", "")}";
+                storageContext.OverrideTableName<NullListModel>(tableName);
+
                 // ensure the table exists                
                 await storageContext.CreateTableAsync<NullListModel>();
 

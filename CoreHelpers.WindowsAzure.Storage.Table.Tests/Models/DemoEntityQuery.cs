@@ -10,7 +10,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 
         [RowKey] public string R { get; set; } = "R1";
 
-        public string StringField { get; set; }
+        public string StringField { get; set; } = String.Empty;
 
         public bool BoolField { get; set; }
     }

@@ -10,9 +10,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 		public string P { get; set; } = "Partition01";
 		
         [RowKey]
-        public string Contact { get; set; }
-    
-		public string FirstName { get; set; } 
-		public string LastName { get; set; }                		
-	}
+        public string Contact { get; set; } = String.Empty;
+
+        public string FirstName { get; set; } = String.Empty;
+        public string LastName { get; set; } = String.Empty;
+    }
 }

@@ -39,9 +39,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 				// query all				
 				var result = await storageContext.QueryAsync<JObjectModel>();
-				Assert.Equal(1, result.Count());
+				Assert.Single(result);
 				Assert.Equal("112233", result.First().UUID);
-				Assert.Equal(1, result.First().Data.Count());
+				Assert.Single(result.First().Data);
 				Assert.True(result.First().Data.ContainsKey("HEllo"));
 				Assert.Equal("Hello 23", result.First().Data2.Value);
 			}
@@ -90,12 +90,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// query all				
 				var result = await storageContext.QueryAsync<DictionaryModel>(model.Id, model.Id);
 				Assert.Equal(model.Id, result.Id);
-				Assert.Equal(0, model.Propertiers.Count());
+				Assert.Empty(model.Propertiers);
 
 				// cleanup				
 				var cleanUpItems = await storageContext.QueryAsync<DictionaryModel>();				
 				await storageContext.DeleteAsync<DictionaryModel>(cleanUpItems, true);
-
 			}
 		}
 

@@ -8,7 +8,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
     {
         [PartitionKey]        
         [RowKey]
-        public string Id { get; set; }
+        public string Id { get; set; } = String.Empty;
 
         [StoreAsJsonObject(typeof(Dictionary<string, string>))]
         public IDictionary<string, string> Propertiers { get; set; } = new Dictionary<string, string>();

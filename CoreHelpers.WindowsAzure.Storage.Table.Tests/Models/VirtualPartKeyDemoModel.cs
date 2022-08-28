@@ -8,8 +8,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 	[VirtualRowKey("{{Value2}}-{{Value3}}")]
 	public class VirtualPartKeyDemoModel
 	{
-		public string Value1 { get; set;  }
-		public string Value2 { get; set;  }				
-		public string Value3 { get; set;  }
-	}
+		public string Value1 { get; set; } = String.Empty;
+		public string Value2 { get; set; } = String.Empty;
+        public string Value3 { get; set; } = String.Empty;
+    }
 }

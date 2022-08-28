@@ -14,6 +14,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
         public string R { get; set; } = "R1";
 
         [VirtualList(PropertyFormat: "DC{{index}}", Digits: 2)]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public List<Double> ExtendedCosts { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     }
 }

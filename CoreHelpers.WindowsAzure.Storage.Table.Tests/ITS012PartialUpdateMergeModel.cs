@@ -28,8 +28,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         
                 // ensure we are using the attributes                
                 storageContext.AddAttributeMapper();
-                
-                // ensure the table exists                
+
+                // build the table name
+                var tableName = $"DemoEntryWithOptinalValues{Guid.NewGuid().ToString().Replace("-", "")}";
+                storageContext.OverrideTableName<DemoEntryWithOptionalValues>(tableName);
+
+                // ensure the table exists
                 await storageContext.CreateTableAsync<DemoEntryWithOptionalValues>();
         
                 // inser the model                
