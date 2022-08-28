@@ -60,3 +60,6 @@ jobs:
           asset_name: CoreHelpers.WindowsAzure.Storage.Table.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
           tag: ${{ steps.get_version.outputs.release_tag }}
           overwrite: true
+          
+      - name: Publish NuGet
+        run: dotnet nuget push ./*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} --source "github"  
