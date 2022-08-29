@@ -14,6 +14,7 @@ using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
+using System.Threading;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -296,13 +297,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
                 // Retrieve a reference to the table.
                 var tc = GetTableClient(GetTableName<T>());
-
-				// Create the batch
-				var tableTransactionsBatch = new List<List<TableTransactionAction>>();
-
+				
 				// Create the frist transaction 
 				var tableTransactions = new List<TableTransactionAction>();
-				tableTransactionsBatch.Add(tableTransactions);
 
                 // lookup the entitymapper
                 var entityMapper = _entityMapperRegistry[typeof(T)];
@@ -336,44 +333,36 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 					if (modelCounter % 100 == 0)
 					{
-                        tableTransactions = new List<TableTransactionAction>();
-                        tableTransactionsBatch.Add(tableTransactions);
+						// store the first 100 models
+                        await tc.SubmitTransactionWithAutoCreateTableAsync(tableTransactions, default(CancellationToken), _autoCreateTable);
+
+                        // notify delegate
+                        if (_delegate != null)
+                            _delegate.OnStored(typeof(T), storaeOperationType, tableTransactions.Count(), null);
+
+						// generate a fresh transaction
+                        tableTransactions = new List<TableTransactionAction>();                        
 					}
 				}
 
-				// execute 
-				foreach (var createdBatch in tableTransactionsBatch)
+				// store the last transaction
+				if (tableTransactions.Count > 0)
 				{
-					if (createdBatch.Count() > 0)
-					{
-						await tc.SubmitTransactionAsync(createdBatch);						
+					await tc.SubmitTransactionWithAutoCreateTableAsync(tableTransactions, default(CancellationToken), _autoCreateTable);
 
-						// notify delegate
-						if (_delegate != null)
-							_delegate.OnStored(typeof(T), storaeOperationType, createdBatch.Count(), null);
-					}
-				}
+					// notify delegate
+					if (_delegate != null)
+						_delegate.OnStored(typeof(T), storaeOperationType, tableTransactions.Count(), null);
+				}                
 			} 
 			catch (TableTransactionFailedException ex) 
 			{
-				// check the exception
-                if (_autoCreateTable && ex.ErrorCode.Equals("TableNotFound"))
-                {
-				    // try to create the table	
-				    await CreateTableAsync<T>();
+				// notify delegate
+				if (_delegate != null)
+					_delegate.OnStored(typeof(T), storaeOperationType, 0, ex);
 
-				    // retry 
-				    await StoreAsync<T>(storaeOperationType, models);
-                }
-				else
-				{
-					// notify delegate
-					if (_delegate != null)
-						_delegate.OnStored(typeof(T), storaeOperationType, 0, ex);				
-					
-					throw ex;
-				}				
-			}
+                ExceptionDispatchInfo.Capture(ex).Throw();
+            }
 		}
 
 		public async Task DeleteAsync<T>(T model) where T: new()
