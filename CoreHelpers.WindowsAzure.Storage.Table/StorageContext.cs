@@ -12,6 +12,8 @@ using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
+using Azure.Data.Tables;
+using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -36,19 +38,21 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		private bool _autoCreateTable { get; set; } = false;
 		private IStorageContextDelegate _delegate { get; set; }
 		private string _tableNamePrefix;
+		private string _connectionString;
 
 		public StorageContext(string storageAccountName, string storageAccountKey, string storageEndpointSuffix = null)
 		{
-			var connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
+            _connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
 			if (!String.IsNullOrEmpty(storageEndpointSuffix))
-				connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
+                _connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
 			
-			_storageAccount = CloudStorageAccount.Parse(connectionString);
+			_storageAccount = CloudStorageAccount.Parse(_connectionString);
 		}
 
         public StorageContext(string connectionString)
         {
-            _storageAccount = CloudStorageAccount.Parse(connectionString);
+			_connectionString = connectionString;
+            _storageAccount = CloudStorageAccount.Parse(_connectionString);
         }
 
         public StorageContext(StorageContext parentContext)
@@ -64,6 +68,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
 			// take the tablename prefix
 			_tableNamePrefix = parentContext._tableNamePrefix;
+
+			// store the connection string
+			_connectionString = parentContext._connectionString;
         }
 
 		public void Dispose()
@@ -101,11 +108,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         public void AddAttributeMapper() 
         {
             AddAttributeMapper(Assembly.GetEntryAssembly());
-			AddAttributeMapper(Assembly.GetCallingAssembly());
-
-			/*foreach(var assembly in Assembly.GetEntryAssembly().GetReferencedAssemblies()) {
-                AddAttributeMapper(assembly);
-            } */
+			AddAttributeMapper(Assembly.GetCallingAssembly());			
 		}
 
         internal void AddAttributeMapper(Assembly assembly)
@@ -199,126 +202,79 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 _entityMapperRegistry[entityType] = duplicatedMapper;
             }
         }
-        
-        public Task CreateTableAsync(Type entityType, bool ignoreErrorIfExists = true) 
-		{
-		    // Retrieve a reference to the table.
-			CloudTable table = GetTableReference(GetTableName(entityType));
-
-			if (ignoreErrorIfExists)
-			{
-				// Create the table if it doesn't exist.
-				return table.CreateIfNotExistsAsync();
-			}
-			else
-			{
-				// Create table and throw error
-				return table.CreateAsync();
-			}
-		}
-		
-		
-		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
-		{
-			return CreateTableAsync(typeof(T), ignoreErrorIfExists);
-		}
-		
-		public void CreateTable<T>(bool ignoreErrorIfExists = true)
-		{
-			this.CreateTableAsync<T>(ignoreErrorIfExists).GetAwaiter().GetResult();
-		}
-
-        public async Task DropTableAsync(Type entityType, bool ignoreErrorIfNotExists = true) 
-        {
-            // Retrieve a reference to the table.
-            CloudTable table = GetTableReference(GetTableName(entityType));
-
-            if (ignoreErrorIfNotExists)
-                await table.DeleteIfExistsAsync();
-            else
-                await table.DeleteAsync();
-        }
 
         public async Task<bool> ExistsTableAsync<T>()
         {
-            CloudTable table = GetTableReference(GetTableName(typeof(T)));
-			return await table.ExistsAsync();
+            var tc = GetTableClient(GetTableName(typeof(T)));
+            return await tc.ExistsAsync();
+        }
+
+        public async Task CreateTableAsync(Type entityType, bool ignoreErrorIfExists = true) 
+		{
+			var tc = GetTableClient(GetTableName(entityType));
+
+			if (ignoreErrorIfExists)
+				await tc.CreateIfNotExistsAsync();			
+			else
+				await tc.CreateAsync();			
+		}
+				
+		public Task CreateTableAsync<T>(bool ignoreErrorIfExists = true)
+			=> CreateTableAsync(typeof(T), ignoreErrorIfExists);		
+		
+		public void CreateTable<T>(bool ignoreErrorIfExists = true)
+			=> this.CreateTableAsync<T>(ignoreErrorIfExists).GetAwaiter().GetResult();		
+
+        public async Task DropTableAsync(Type entityType, bool ignoreErrorIfNotExists = true) 
+        {
+            var tc = GetTableClient(GetTableName(entityType));            
+            if (ignoreErrorIfNotExists)
+                await tc.DeleteIfExistsAsync();
+            else
+                await tc.DeleteAsync();
         }
 
         public async Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true)
-        {
-            await DropTableAsync(typeof(T), ignoreErrorIfNotExists);
-        }
+			=> await DropTableAsync(typeof(T), ignoreErrorIfNotExists);        
 
-        public void DropTable<T>(bool ignoreErrorIfNotExists = true) 
-        {
-            Task.Run(async () => await DropTableAsync(typeof(T), ignoreErrorIfNotExists)).Wait();
-        }
+        public void DropTable<T>(bool ignoreErrorIfNotExists = true)
+			=> Task.Run(async () => await DropTableAsync(typeof(T), ignoreErrorIfNotExists)).Wait();        
 
 		public async Task InsertAsync<T>(IEnumerable<T> models) where T : new ()
-		{
-			await this.StoreAsync(nStoreOperation.insertOperation, models);
-		}
+			=> await this.StoreAsync(nStoreOperation.insertOperation, models);		
 
 		public async Task MergeAsync<T>(IEnumerable<T> models) where T : new()
-		{
-			await this.StoreAsync(nStoreOperation.mergeOperation, models);
-		}
+			=> await this.StoreAsync(nStoreOperation.mergeOperation, models);	
 
 		public async Task InsertOrReplaceAsync<T>(IEnumerable<T> models) where T : new()
-		{
-			await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);
-		}
+			=> await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);	
 		
 		public async Task InsertOrReplaceAsync<T>(T model) where T : new()
-		{
-			await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });
-		}
+			=> await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });		
 
 		public async Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new()
-		{
-			await this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);
-		}
+			=> await this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);	
 		
 		public async Task MergeOrInsertAsync<T>(T model) where T : new()
-		{
-			await this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
-		}
+			=> await this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });		
 
         public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
-		{
-			var result = await QueryAsyncInternal<T>(partitionKey, rowKey, null, maxItems);
-			return result.FirstOrDefault<T>();
-		}
+			=> (await QueryAsyncInternal<T>(partitionKey, rowKey, null, maxItems)).FirstOrDefault<T>();				
 
         public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey, IEnumerable<QueryFilter> queryFilters, int maxItems = 0) where T : new()
-        {
-            return await QueryAsyncInternal<T>(partitionKey, null, queryFilters, maxItems);
-        }
+			=> await QueryAsyncInternal<T>(partitionKey, null, queryFilters, maxItems);        
 
         public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey, int maxItems = 0) where T : new()
-		{
-			return await QueryAsyncInternal<T>(partitionKey, null, null, maxItems);
-		}
+			=> await QueryAsyncInternal<T>(partitionKey, null, null, maxItems);		
 
-		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0) where T: new() 
-		{
-			return await QueryAsyncInternal<T>(null, null, null, maxItems);
-		}
+		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0) where T: new()
+			=> await QueryAsyncInternal<T>(null, null, null, maxItems);		
 		
-		private string GetTableName<T>() 
-		{
-			return GetTableName(typeof(T));
-		}
+		private string GetTableName<T>()
+			=> GetTableName(typeof(T));		
 		
 		private string GetTableName(Type entityType)
-		{
-			// lookup the entitymapper
-			var entityMapper = _entityMapperRegistry[entityType];
-
-			// get the table name
-			return GetTableName(entityMapper.TableName);
-        }
+			=> GetTableName(_entityMapperRegistry[entityType].TableName);        
 
         private string GetTableName(string tableName)
         {
@@ -336,19 +292,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				// notify delegate
 				if (_delegate != null)
 					_delegate.OnStoring(typeof(T), storaeOperationType);
-					
-				// Retrieve a reference to the table.
-				CloudTable table = GetTableReference(GetTableName<T>());
 
-				// Create the batch operation.
-				List<TableBatchOperation> batchOperations = new List<TableBatchOperation>();
-				
-				// Create the first batch
-				var currentBatch = new TableBatchOperation();
-				batchOperations.Add(currentBatch);
 
-				// lookup the entitymapper
-				var entityMapper = _entityMapperRegistry[typeof(T)];
+                // Retrieve a reference to the table.
+                var tc = GetTableClient(GetTableName<T>());
+
+				// Create the batch
+				var tableTransactionsBatch = new List<List<TableTransactionAction>>();
+
+				// Create the frist transaction 
+				var tableTransactions = new List<TableTransactionAction>();
+				tableTransactionsBatch.Add(tableTransactions);
+
+                // lookup the entitymapper
+                var entityMapper = _entityMapperRegistry[typeof(T)];
 
 				// define the modelcounter
 				int modelCounter = 0;
@@ -359,37 +316,37 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					switch (storaeOperationType)
 					{
 						case nStoreOperation.insertOperation:
-							currentBatch.Insert(new DynamicTableEntity<T>(model, entityMapper));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Add, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
 							break;
 						case nStoreOperation.insertOrReplaceOperation:
-							currentBatch.InsertOrReplace(new DynamicTableEntity<T>(model, entityMapper));
-							break;
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertReplace, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            break;
 						case nStoreOperation.mergeOperation:
-							currentBatch.Merge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpdateMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            break;
 						case nStoreOperation.mergeOrInserOperation:
-							currentBatch.InsertOrMerge(new DynamicTableEntity<T>(model, entityMapper));
-							break;
-						case nStoreOperation.delete: 
-							currentBatch.Delete(new DynamicTableEntity<T>(model, entityMapper));
-							break;
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            break;
+						case nStoreOperation.delete:
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Delete, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            break;
 					}
 
 					modelCounter++;
 
 					if (modelCounter % 100 == 0)
 					{
-						currentBatch = new TableBatchOperation();
-						batchOperations.Add(currentBatch);
+                        tableTransactions = new List<TableTransactionAction>();
+                        tableTransactionsBatch.Add(tableTransactions);
 					}
 				}
 
 				// execute 
-				foreach (var createdBatch in batchOperations)
+				foreach (var createdBatch in tableTransactionsBatch)
 				{
 					if (createdBatch.Count() > 0)
 					{
-						await table.ExecuteBatchAsync(createdBatch);
+						await tc.SubmitTransactionAsync(createdBatch);						
 
 						// notify delegate
 						if (_delegate != null)
@@ -397,10 +354,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					}
 				}
 			} 
-			catch (StorageException ex) 
+			catch (TableTransactionFailedException ex) 
 			{
 				// check the exception
-                if (_autoCreateTable && ex.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
+                if (_autoCreateTable && ex.ErrorCode.Equals("TableNotFound"))
                 {
 				    // try to create the table	
 				    await CreateTableAsync<T>();
@@ -419,19 +376,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			}
 		}
 
-		public async Task DeleteAsync<T>(T model) where T: new() 
-		{
-			await DeleteAsync<T>(new List<T>() { model });			
-		}
+		public async Task DeleteAsync<T>(T model) where T: new()
+			=> await DeleteAsync<T>(new List<T>() { model });		
 		
 		public async Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T: new() 
 		{
 			try
 			{
 				await this.StoreAsync(nStoreOperation.delete, models);
-			} catch(Exception e)
+			} catch(TableTransactionFailedException e)
             {
-				if (e.Message.Equals("All entities in a given batch must have the same partition key.") && allowMultiPartionRemoval)
+				if (e.ErrorCode.Equals("CommandsInBatchActOnDifferentPartitions") && allowMultiPartionRemoval)				
                 {
 					// build a per partition key cache
 					var partionKeyDictionary = new Dictionary<string, List<T>>();
@@ -473,7 +428,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					_delegate.OnQuerying(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null);				
 					
 				// Retrieve a reference to the table.
-				CloudTable table = GetTableReference(GetTableName<T>());
+				var table = GetTableReference(GetTableName<T>());
 
 				// lookup the entitymapper
 				var entityMapper = _entityMapperRegistry[typeof(T)];
@@ -595,6 +550,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			// Retrieve a reference to the table.
 			return tableClient.GetTableReference(tableName);
 		}
+
+        private TableClient GetTableClient(string tableName)
+        {
+			return new TableClient(_connectionString, tableName);            
+        }
 
         internal CloudTable RequestTableReference(string tableName)
         {

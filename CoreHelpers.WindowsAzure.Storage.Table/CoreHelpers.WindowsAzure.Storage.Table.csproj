@@ -18,7 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-     <None Include="..\LICENSE" Pack="true" PackagePath=""/>
+    <None Remove="Azure.Data.Tables" />
+    <None Remove="Serialization\" />
+  </ItemGroup>
+  <ItemGroup>
+     <None Include="..\LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +30,7 @@
     <PackageReference Include="System.Linq.Queryable" Version="4.3.0" />
     <PackageReference Include="Handlebars.Net" Version="2.1.2" />
     <PackageReference Include="System.Linq.Parallel" Version="4.3.0" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.6.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Attributes\" />
@@ -33,6 +38,7 @@
     <Folder Include="Delegates\" />
     <Folder Include="Services\" />
     <Folder Include="Internal\" />
+    <Folder Include="Serialization\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.csproj" />

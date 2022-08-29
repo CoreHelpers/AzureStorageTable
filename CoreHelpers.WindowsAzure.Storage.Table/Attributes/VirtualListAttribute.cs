@@ -5,12 +5,13 @@ using System.Reflection;
 using HandlebarsDotNet;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
+using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
-	public class VirtualListAttribute : VirtualTypeAttribute
-	{
+	public class VirtualListAttribute : VirtualTypeAttribute, IVirtualTypeAttribute
+    {
 		private HandlebarsTemplate<object, string> TemplateFunction { get; set; }
 		private string DigitFormat { get; set; }
 		
@@ -73,5 +74,28 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 			
 			}			
 		}
-	}
+
+        public void WriteProperty<T>(PropertyInfo propertyInfo, T obj, TableEntityBuilder builder)
+        {
+            // get the value
+            var arrayValue = propertyInfo.GetValue(obj);
+
+            // check if enumerable 
+            if ((arrayValue as IList) == null)
+                return;
+
+            // visit every element
+            for (int idx = 0; idx < (arrayValue as IList).Count; idx++)
+            {
+                // get the element 
+                var element = (arrayValue as IList)[idx];
+
+                // generate the property name
+                var propertyName = TemplateFunction(new { index = idx.ToString(DigitFormat) });
+				
+				// write the property
+				builder.AddProperty(propertyName, element);                
+            }
+        }
+    }
 }

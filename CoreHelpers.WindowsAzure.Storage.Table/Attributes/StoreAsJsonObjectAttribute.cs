@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Reflection;
+using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
-	public class StoreAsJsonObjectAttribute : StoreAsAttribute
-	{	
+	public class StoreAsJsonObjectAttribute : StoreAsAttribute, IVirtualTypeAttribute
+    {	
 		protected Type ObjectType { get; set; }
 		
 		public StoreAsJsonObjectAttribute() 
@@ -54,5 +55,19 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 				return JsonConvert.DeserializeObject(entityProperty.StringValue, property.PropertyType);
 			}
 		}
-	}
+
+        public void WriteProperty<T>(PropertyInfo propertyInfo, T obj, TableEntityBuilder builder)
+        {
+            // get the value 
+            var element = propertyInfo.GetValue(obj);
+            if (element == null)
+                return;
+
+            // convert to strong 
+            var stringifiedElement = JsonConvert.SerializeObject(element);
+
+			// add the property
+			builder.AddProperty(propertyInfo.Name, stringifiedElement);
+        }
+    }
 }

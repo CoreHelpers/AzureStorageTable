@@ -19,6 +19,24 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		}
 
 		[Fact]
+		public async Task VerifyTableExists()
+		{
+			using (var scp = new StorageContext(env.ConnectionString))
+			{
+                // set the tablename context
+                scp.SetTableContext();
+
+                // configure the entity mapper
+                scp.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+
+				Assert.False(await scp.ExistsTableAsync<UserModel>());
+
+                await scp.CreateTableAsync<UserModel>();
+                Assert.True(await scp.ExistsTableAsync<UserModel>());
+            }
+        }
+
+        [Fact]
         public async Task VerifyStaticEntityMapperOperations()
         {
 			using (var scp = new StorageContext(env.ConnectionString))
@@ -41,9 +59,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				{
 					// ensure the table exists					
 					await sc.CreateTableAsync<UserModel>();
-									
-					// inser the model
-					await sc.MergeOrInsertAsync<UserModel>(user);					
+
+					// ensure we are empty
+                    var resultEmpty = await scp.QueryAsync<UserModel>();
+					Assert.Empty(resultEmpty);
+
+                    // inser the model
+                    await sc.MergeOrInsertAsync<UserModel>(user);					
 				}
 
 				// verify if the model was created				
