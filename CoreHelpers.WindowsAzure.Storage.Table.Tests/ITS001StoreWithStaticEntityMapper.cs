@@ -11,23 +11,24 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 	[Collection("Sequential")]
 	public class ITS001StoreWithStaticEntityMapper
 	{
-		private readonly ITestEnvironment env;
+		private readonly IStorageContext _rootContext;
 
-		public ITS001StoreWithStaticEntityMapper(ITestEnvironment env)
+		public ITS001StoreWithStaticEntityMapper(IStorageContext context)
 		{
-			this.env = env;
-		}
+            _rootContext = context;
+
+        }
 
 		[Fact]
 		public async Task VerifyTableExists()
 		{
-			using (var scp = new StorageContext(env.ConnectionString))
+			using (var scp = _rootContext.CreateChildContext())
 			{
                 // set the tablename context
                 scp.SetTableContext();
 
                 // configure the entity mapper
-                scp.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+                scp.AddEntityMapper(typeof(UserModel), "Contact", "Contact", "UserProfiles");
 
 				Assert.False(await scp.ExistsTableAsync<UserModel>());
 
@@ -39,7 +40,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         [Fact]
         public async Task VerifyStaticEntityMapperOperations()
         {
-			using (var scp = new StorageContext(env.ConnectionString))
+			using (var scp = _rootContext.CreateChildContext())
 			{
 				// set the tablename context
 				scp.SetTableContext();
@@ -52,10 +53,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				user.Contact = $"{user.Contact}.{runId}";
 
 				// configure the entity mapper
-				scp.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+				scp.AddEntityMapper(typeof(UserModel), tableName: "UserProfiles", partitionKeyFormat: "Contact", rowKeyFormat: "Contact" );
 
 				// execute the store operation
-				using (var sc = new StorageContext(scp))
+				using (var sc = scp.CreateChildContext())
 				{
 					// ensure the table exists					
 					await sc.CreateTableAsync<UserModel>();
@@ -71,7 +72,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// verify if the model was created				
 				var result = await scp.QueryAsync<UserModel>();
 				Assert.NotNull(result);
-				Assert.Equal(1, result.Count());
+				Assert.Single(result);
 				Assert.Equal("Egon", result.First().FirstName);
 				Assert.Equal("Mueller", result.First().LastName);
 				Assert.Equal($"em@acme.org.{runId}", result.First().Contact);
@@ -85,7 +86,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		[Fact]
 		public async Task VerifyVirtualKeysPOCOModel()
 		{
-			using (var scp = new StorageContext(env.ConnectionString))
+			using (var scp = _rootContext.CreateChildContext())
 			{
                 // set the tablename context
                 scp.SetTableContext();
@@ -94,10 +95,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 var vpmodel = new VirtualPartitionKeyDemoModelPOCO() { Value1 = "abc", Value2 = "def", Value3 = "ghi" };
 				
 				// configure the entity mapper				
-				scp.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), new DynamicTableEntityMapper() { TableName = "VirtualPartitionKeyDemoModelPOCO", PartitionKeyFormat = "{{Value1}}-{{Value2}}", RowKeyFormat = "{{Value2}}-{{Value3}}" });
+				scp.AddEntityMapper(typeof(VirtualPartitionKeyDemoModelPOCO), tableName: "VirtualPartitionKeyDemoModelPOCO", partitionKeyFormat: "{{Value1}}-{{Value2}}", rowKeyFormat: "{{Value2}}-{{Value3}}");
 
 				// execute the store operation
-				using (var sc = new StorageContext(scp))
+				using (var sc = scp.CreateChildContext())
 				{
 					// ensure the table exists					
 					await sc.CreateTableAsync<VirtualPartitionKeyDemoModelPOCO>();
@@ -109,7 +110,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// verify if the model was created				
 				var result = await scp.QueryAsync<VirtualPartitionKeyDemoModelPOCO>();
 				Assert.NotNull(result);
-				Assert.Equal(1, result.Count());
+				Assert.Single(result);
 				Assert.Equal("abc", result.First().Value1);
 				Assert.Equal("def", result.First().Value2);
 				Assert.Equal("ghi", result.First().Value3);
@@ -123,7 +124,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		[Fact]
 		public async Task VerifyStatsDelegate()
         {
-			using (var scp = new StorageContext(env.ConnectionString))
+			using (var scp = _rootContext.CreateChildContext())
 			{
                 // set the tablename context
                 scp.SetTableContext();
@@ -140,10 +141,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				user.Contact = $"{user.Contact}.{runId}";
 
 				// configure the entity mapper
-				scp.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = "UserProfiles", PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+				scp.AddEntityMapper(typeof(UserModel), tableName: "UserProfiles", partitionKeyFormat: "Contact", rowKeyFormat: "Contact");
 
 				// execute the store operation
-				using (var sc = new StorageContext(scp))
+				using (var sc = scp.CreateChildContext())
 				{
 					// ensure the table exists					
 					await sc.CreateTableAsync<UserModel>();
@@ -169,8 +170,3 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 		}
 	}
 }
-
-
-
-// PUT DElegates in another test
-

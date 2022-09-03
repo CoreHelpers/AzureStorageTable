@@ -69,5 +69,43 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 			// add the property
 			builder.AddProperty(propertyInfo.Name, stringifiedElement);
         }
+
+        public void ReadProperty<T>(Azure.Data.Tables.TableEntity dataObject, PropertyInfo propertyInfo, T obj)
+        {
+			// check if we have the property in our entity othetwise move forward
+			if (!dataObject.ContainsKey(propertyInfo.Name))
+				return;
+
+            // get the string value
+            var stringValue = Convert.ToString(dataObject[propertyInfo.Name]);
+
+			// prepare the value
+			var resultValue = default(Object);
+
+			// handle the special operations
+            if (ObjectType != null && typeof(IEnumerable).GetTypeInfo().IsAssignableFrom(ObjectType) && ObjectType.GetTypeInfo().UnderlyingSystemType != null)
+            {
+                var convertedElements = JsonConvert.DeserializeObject(stringValue, ObjectType);
+                try
+                {
+                    resultValue = Activator.CreateInstance(propertyInfo.PropertyType, convertedElements);
+                }
+                catch (MissingMethodException)
+                {
+                    resultValue = Activator.CreateInstance(ObjectType, convertedElements);
+                }
+            }
+            else if (ObjectType != null)
+            {
+                resultValue = JsonConvert.DeserializeObject(stringValue, ObjectType);
+            }
+            else
+            {
+                resultValue = JsonConvert.DeserializeObject(stringValue, propertyInfo.PropertyType);
+            }
+
+			// set the value
+			propertyInfo.SetValue(obj, resultValue);
+        }
     }
 }

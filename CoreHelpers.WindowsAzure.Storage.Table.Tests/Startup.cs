@@ -8,7 +8,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
     {               
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTransient<ITestEnvironment, UnittestStorageEnvironment>();            
+            services.AddTransient<ITestEnvironment, UnittestStorageEnvironment>();
+
+            services.AddScoped<IStorageContext>((svp) =>
+            {
+                var env = svp.GetService<ITestEnvironment>();
+                return new StorageContext(env.ConnectionString);
+            });
         }
     }
 }

@@ -2,39 +2,52 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
+namespace CoreHelpers.WindowsAzure.Storage.Table
 {
     public interface IStorageContext : IDisposable
     {
+        void AddAttributeMapper();
+
         void AddAttributeMapper(Type type);
+
+        void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, String tableName);
 
         IStorageContext CreateChildContext();
 
         IStorageContext EnableAutoCreateTable();
 
-        Task InsertOrReplaceAsync<T>(T model) where T : new();
+        bool IsAutoCreateTableEnabled();
 
-        Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new();
+        void SetDelegate(IStorageContextDelegate delegateModel);
 
-        Task<IQueryable<T>> QueryAsync<T>(string partitionKey, int maxItems = 0) where T : new();
+        IStorageContextDelegate GetDelegate();
 
-        Task<IQueryable<T>> QueryAsync<T>(string partitionKey, IEnumerable<QueryFilter> queryFilters, int maxItems = 0)
-            where T : new();
+        Task InsertOrReplaceAsync<T>(T model) where T : class, new();
 
-        Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0) where T : new();
+        IStorageContextQueryWithPartitionKey<T> Query<T>() where T : class, new();
+
+        Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : class, new();
+
+        Task<IEnumerable<T>> QueryAsync<T>(string partitionKey, int maxItems = 0) where T : class, new();
+
+        Task<IEnumerable<T>> QueryAsync<T>(string partitionKey, IEnumerable<QueryFilter> queryFilters, int maxItems = 0)
+            where T : class, new();
+
+        Task<IEnumerable<T>> QueryAsync<T>(int maxItems = 0) where T : class, new();
         
-        Task DeleteAsync<T>(T model) where T : new();
+        Task DeleteAsync<T>(T model) where T : class, new();
 
-        Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T : new();
+        Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T : class, new();
 
         void SetTableNamePrefix(string tableNamePrefix);
 
-        void OverrideTableName<T>(string table) where T : new();
+        void OverrideTableName<T>(string table) where T : class, new();
 
-        Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new();
+        Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : class, new();
 
-        Task MergeOrInsertAsync<T>(T model) where T : new();
+        Task MergeOrInsertAsync<T>(T model) where T : class, new();
 
         Task CreateTableAsync<T>(bool ignoreErrorIfExists = true);
 
@@ -44,7 +57,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
 
         Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true);
 
-        void DropTable<T>(bool ignoreErrorIfNotExists = true);
-
+        void DropTable<T>(bool ignoreErrorIfNotExists = true);        
     }
 }

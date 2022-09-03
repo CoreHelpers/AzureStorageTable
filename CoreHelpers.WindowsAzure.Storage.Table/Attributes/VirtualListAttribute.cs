@@ -97,5 +97,34 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 				builder.AddProperty(propertyName, element);                
             }
         }
+
+        public void ReadProperty<T>(Azure.Data.Tables.TableEntity dataObject, PropertyInfo propertyInfo, T obj)
+        {
+			// set the current index 
+			var currentIndex = 0;
+
+            // try to read every single index
+			while(true) 
+            {
+                // get the propertyname
+                var propertyName = TemplateFunction(new { index = currentIndex.ToString(DigitFormat) });
+
+                // check if we have the name 
+                if (!dataObject.ContainsKey(propertyName))
+                    break;
+
+				// read the value
+				var dataObjectPropertyValue = dataObject[propertyName];
+
+				// read the value 				
+				propertyInfo.SetOrAddValue(obj, dataObjectPropertyValue, true);
+
+				// increase the index
+				currentIndex++;
+
+            }         
+        }
+
+        
     }
 }

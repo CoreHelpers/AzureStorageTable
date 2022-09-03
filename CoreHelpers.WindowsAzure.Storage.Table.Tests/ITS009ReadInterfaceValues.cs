@@ -39,7 +39,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<UserModel3>(user02);
 				            	
 				var result = await storageContext.QueryAsync<UserModel3>();
-				Assert.Equal(1, result.Count());
+				Assert.Single(result);
 				Assert.Equal("Mueller", result.First().LastName);
 				Assert.Equal(2, result.Last().Codes.Count());
 				Assert.Equal("x1", result.Last().Codes.First().CodeType);
@@ -47,7 +47,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up 
 				await storageContext.DeleteAsync<UserModel3>(result);
 				result = await storageContext.QueryAsync<UserModel3>();
-				Assert.Equal(0, result.Count());
+				Assert.Empty(result);
 
                 await storageContext.DropTableAsync<UserModel3>();
             }						

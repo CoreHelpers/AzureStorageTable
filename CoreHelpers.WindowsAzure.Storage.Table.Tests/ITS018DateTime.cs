@@ -43,7 +43,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // query all                
                 var result = await storageContext.QueryAsync<DatetimeModel>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Equal(dt, result.First().ActivatedAt);
                 
                 // Clean up                 

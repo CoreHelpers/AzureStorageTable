@@ -61,7 +61,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 storageContext.AddAttributeMapper(typeof(JObjectModelVerify));
 
 				var result = await storageContext.QueryAsync<JObjectModelVerify>();
-				Assert.Equal(1, result.Count());
+				Assert.Single(result);
 				Assert.Equal("112233", result.First().UUID);
 				Assert.Equal("{\"Value\":\"Hello 23\"}", result.First().Data2);
 				Assert.Equal("{\"HEllo\":\"world\"}", result.First().Data);
@@ -81,7 +81,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<JObjectModel>(result);
 				result = await storageContext.QueryAsync<JObjectModel>();
 				Assert.NotNull(result);
-				Assert.Equal(0, result.Count());
+				Assert.Empty(result);
 
                 await storageContext.DropTableAsync<JObjectModel>();
             }
@@ -138,7 +138,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<DictionaryModel>(cleanUpItems, true);
 
 				var zeroItems = await storageContext.QueryAsync<DictionaryModel>();
-				Assert.Equal(0, zeroItems.Count());
+				Assert.Empty(zeroItems);
 
                 await storageContext.DropTableAsync<DictionaryModel>();
             }

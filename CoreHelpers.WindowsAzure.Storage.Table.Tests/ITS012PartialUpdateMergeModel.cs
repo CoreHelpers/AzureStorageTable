@@ -61,7 +61,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up                 
                 await storageContext.DeleteAsync<DemoEntryWithOptionalValues>(result);
                 var elements = await storageContext.QueryAsync<DemoEntryWithOptionalValues>();
-                Assert.Equal(0, elements.Count());
+                Assert.Empty(elements);
 
                 await storageContext.DropTableAsync<DemoEntryWithOptionalValues>();
             }

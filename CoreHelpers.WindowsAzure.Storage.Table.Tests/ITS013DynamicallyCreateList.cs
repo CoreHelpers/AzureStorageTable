@@ -55,7 +55,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up                 
                 await storageContext.DeleteAsync<DemoMeterModel>(result);
                 var elements = await storageContext.QueryAsync<DemoMeterModel>();
-                Assert.Equal(0, elements.Count());
+                Assert.Empty(elements);
 
                 await storageContext.DropTableAsync<DemoMeterModel>();
             }       
@@ -87,13 +87,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // query all                
                 var result = await storageContext.QueryAsync<NullListModel>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Null(result.First().Items);                
 
                 // Clean up                 
                 await storageContext.DeleteAsync<NullListModel>(result);
                 var elements = await storageContext.QueryAsync<NullListModel>();
-                Assert.Equal(0, elements.Count());
+                Assert.Empty(elements);
 
                 await storageContext.DropTableAsync<NullListModel>();
             }

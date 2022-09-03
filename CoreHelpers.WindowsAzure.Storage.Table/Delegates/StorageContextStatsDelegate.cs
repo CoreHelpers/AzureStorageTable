@@ -8,12 +8,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Delegates
 		public Dictionary<nStoreOperation, int> StoreOperations { get; set; } = new Dictionary<nStoreOperation, int>();
 	  	public int QueryOperations { get; set; }
 	  	
-		public void OnQueryed(Type modelType, string partitionKey, string rowKey, int maxItems, bool isContinuationQuery, Exception e)
+		public void OnQueryed(Type modelType, string filter, int maxItems, bool isContinuationQuery, Exception e)
 		{
 			QueryOperations += 1;	
 		}
 
-		public void OnQuerying(Type modelType, string partitionKey, string rowKey, int maxItems, bool isContinuationQuery)
+		public void OnQuerying(Type modelType, string filter, int maxItems, bool isContinuationQuery)
 		{
 			
 		}

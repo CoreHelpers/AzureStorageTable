@@ -47,7 +47,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // query all                
                 var result = await storageContext.QueryAsync<UserModel>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Equal("Egon", result.First().FirstName);
                 Assert.Equal("Mueller", result.First().LastName);
                 Assert.Equal("em@acme.org", result.First().Contact);
@@ -76,11 +76,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
 
                 // query all and expect exception
-                Assert.Throws<AggregateException>(() => storageContext.QueryAsync<UserModel>().Wait());
+                Assert.Throws<Azure.RequestFailedException>(() => storageContext.Query<UserModel>().Now().GetAwaiter().GetResult().FirstOrDefault()); ;
 
                 // query all by creating a new table
                 var result = await storageContext.EnableAutoCreateTable().QueryAsync<UserModel>();
-                Assert.Equal(0, result.Count());
+                Assert.Empty(result);
 
                 await storageContext.DropTableAsync<UserModel>();
             }

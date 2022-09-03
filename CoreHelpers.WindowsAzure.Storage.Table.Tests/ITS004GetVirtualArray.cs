@@ -44,7 +44,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         
                 // query all                
                 var result = await storageContext.QueryAsync<VArrayModel>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Equal("112233", result.First().UUID);
                 Assert.Equal(3, result.First().DataElements.Count());
                 Assert.Equal(2, result.First().DataElements[0]);
@@ -55,7 +55,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<VArrayModel>(result);
                 result = await storageContext.QueryAsync<VArrayModel>();
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count());
+                Assert.Empty(result);
 
                 await storageContext.DropTableAsync<VArrayModel>();
             }						

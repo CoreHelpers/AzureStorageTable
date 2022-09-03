@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using HandlebarsDotNet;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
@@ -39,6 +40,45 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 
             // build the result 
             return builder.Build();
+        }
+
+        public static T fromEntity<T>(TableEntity entity, DynamicTableEntityMapper entityMapper) where T : class, new()
+        {
+            // create the target model
+            var model = new T();
+
+            // get all properties from model 
+            IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();
+            
+            // visit all properties
+            foreach (PropertyInfo property in objectProperties)
+            {
+                if (ShouldSkipProperty(property))
+                    continue;
+               
+                // check if we have a special convert attached via attribute if so generate the required target 
+                // properties with the correct converter
+                var virtualTypeAttribute = property.GetCustomAttributes().Where(a => a is IVirtualTypeAttribute).Select(a => a as IVirtualTypeAttribute).FirstOrDefault<IVirtualTypeAttribute>();
+                if (virtualTypeAttribute != null)
+                    virtualTypeAttribute.ReadProperty<T>(entity, property, model);
+                else
+                {
+                    if (!entity.ContainsKey(property.Name))
+                        continue;
+
+                    var objectValue = default(object);
+
+                    if (!entity.TryGetValue(property.Name, out objectValue))
+                        continue;
+
+                    if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?) )
+                        property.SetDateTimeOffsetValue(model, objectValue);
+                    else
+                        property.SetValue(model, objectValue);
+                }
+            }
+
+            return model;
         }
 
         private static S GetTableStorageDefaultProperty<S, T>(string format, T model) where S : class

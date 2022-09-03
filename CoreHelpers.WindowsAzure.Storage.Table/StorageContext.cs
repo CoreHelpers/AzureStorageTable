@@ -7,7 +7,6 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using System.IO;
-using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Services;
 using System.Runtime.ExceptionServices;
@@ -15,17 +14,11 @@ using System.Text.RegularExpressions;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 using System.Threading;
+using CoreHelpers.WindowsAzure.Storage.Table.Internal;
+using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
-	public enum nStoreOperation {
-		insertOperation, 
-		insertOrReplaceOperation,
-		mergeOperation,
-		mergeOrInserOperation,
-		delete
-	}
-
 	public class QueryResult<T>
 	{
 		public IQueryable<T> Items { get; internal set; }
@@ -73,8 +66,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			// store the connection string
 			_connectionString = parentContext._connectionString;
         }
-
-		public void Dispose()
+        
+        public void Dispose()
 		{
 			
 		}
@@ -84,7 +77,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			_delegate = delegateModel;		
 		}
 
-		public IStorageContext CreateChildContext()
+		public IStorageContextDelegate GetDelegate()
+        {
+			return _delegate;
+        }
+
+        public IStorageContext CreateChildContext()
 		{
 			return new StorageContext(this);
 		}
@@ -95,10 +93,25 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return this;
 		}
 
-		public void AddEntityMapper(Type entityType, DynamicTableEntityMapper entityMapper)
+        public bool IsAutoCreateTableEnabled()
+        {
+			return _autoCreateTable;
+        }
+
+        public void AddEntityMapper(Type entityType, DynamicTableEntityMapper entityMapper)
 		{
 			_entityMapperRegistry.Add(entityType, entityMapper);
 		}
+
+        public void AddEntityMapper(Type entityType, string partitionKeyFormat, string rowKeyFormat, string tableName)
+        {
+            _entityMapperRegistry.Add(entityType, new DynamicTableEntityMapper()
+			{
+				PartitionKeyFormat = partitionKeyFormat,
+				RowKeyFormat = rowKeyFormat,
+				TableName = tableName
+			});
+        }
 
         public void RemoveEntityMapper(Type entityType)
         {
@@ -179,12 +192,18 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _entityMapperRegistry.Keys;
         }
 
+        public DynamicTableEntityMapper GetEntityMapper<T>()
+        {
+			return _entityMapperRegistry[typeof(T)];
+        }
+
+
         public void SetTableNamePrefix(string tableNamePrefix)
         {
 			_tableNamePrefix = tableNamePrefix;
         }
 
-        public void OverrideTableName<T>(string table) where T : new() { 
+        public void OverrideTableName<T>(string table) where T : class, new() { 
 			OverrideTableName(typeof(T), table);
         }
 
@@ -241,35 +260,35 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         public void DropTable<T>(bool ignoreErrorIfNotExists = true)
 			=> Task.Run(async () => await DropTableAsync(typeof(T), ignoreErrorIfNotExists)).Wait();        
 
-		public async Task InsertAsync<T>(IEnumerable<T> models) where T : new ()
+		public async Task InsertAsync<T>(IEnumerable<T> models) where T : class, new()
 			=> await this.StoreAsync(nStoreOperation.insertOperation, models);		
 
-		public async Task MergeAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task MergeAsync<T>(IEnumerable<T> models) where T : class, new()
 			=> await this.StoreAsync(nStoreOperation.mergeOperation, models);	
 
-		public async Task InsertOrReplaceAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task InsertOrReplaceAsync<T>(IEnumerable<T> models) where T : class, new()
 			=> await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, models);	
 		
-		public async Task InsertOrReplaceAsync<T>(T model) where T : new()
+		public async Task InsertOrReplaceAsync<T>(T model) where T : class, new()
 			=> await this.StoreAsync(nStoreOperation.insertOrReplaceOperation, new List<T>() { model });		
 
-		public async Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : new()
+		public async Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : class, new()
 			=> await this.StoreAsync(nStoreOperation.mergeOrInserOperation, models);	
 		
-		public async Task MergeOrInsertAsync<T>(T model) where T : new()
-			=> await this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });		
+		public async Task MergeOrInsertAsync<T>(T model) where T : class, new()
+			=> await this.StoreAsync(nStoreOperation.mergeOrInserOperation, new List<T>() { model });
 
-        public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : new()
-			=> (await QueryAsyncInternal<T>(partitionKey, rowKey, null, maxItems)).FirstOrDefault<T>();				
+		public async Task<T> QueryAsync<T>(string partitionKey, string rowKey, int maxItems = 0) where T : class, new()            
+            => (await Query<T>().InPartition(partitionKey).GetItem(rowKey).LimitTo(maxItems).Now()).FirstOrDefault<T>();
 
-        public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey, IEnumerable<QueryFilter> queryFilters, int maxItems = 0) where T : new()
-			=> await QueryAsyncInternal<T>(partitionKey, null, queryFilters, maxItems);        
+		public async Task<IEnumerable<T>> QueryAsync<T>(string partitionKey, IEnumerable<QueryFilter> queryFilters, int maxItems = 0) where T : class, new()
+			=> await Query<T>().InPartition(partitionKey).Filter(queryFilters).LimitTo(maxItems).Now();			
 
-        public async Task<IQueryable<T>> QueryAsync<T>(string partitionKey, int maxItems = 0) where T : new()
-			=> await QueryAsyncInternal<T>(partitionKey, null, null, maxItems);		
+		public async Task<IEnumerable<T>> QueryAsync<T>(string partitionKey, int maxItems = 0) where T : class, new()
+			=> await Query<T>().InPartition(partitionKey).LimitTo(maxItems).Now();
 
-		public async Task<IQueryable<T>> QueryAsync<T>(int maxItems = 0) where T: new()
-			=> await QueryAsyncInternal<T>(null, null, null, maxItems);		
+		public async Task<IEnumerable<T>> QueryAsync<T>(int maxItems = 0) where T : class, new()
+			=> await Query<T>().InPartition(null).LimitTo(maxItems).Now();			
 		
 		private string GetTableName<T>()
 			=> GetTableName(typeof(T));		
@@ -365,10 +384,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
 		}
 
-		public async Task DeleteAsync<T>(T model) where T: new()
+		public async Task DeleteAsync<T>(T model) where T: class, new()
 			=> await DeleteAsync<T>(new List<T>() { model });		
 		
-		public async Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T: new() 
+		public async Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T: class, new() 
 		{
 			try
 			{
@@ -408,13 +427,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
 		}
 
+		public IStorageContextQueryWithPartitionKey<T> Query<T>() where T : class, new()
+        {
+			return new StorageContextQueryWithPartitionKey<T>(this);
+        }
+
+		
+		
 		internal async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
 		{
 			try
 			{
 				// notify delegate
-				if (_delegate != null)
-					_delegate.OnQuerying(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null);				
+				/*if (_delegate != null)
+					_delegate.OnQuerying(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null);				*/
 					
 				// Retrieve a reference to the table.
 				var table = GetTableReference(GetTableName<T>());
@@ -472,8 +498,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					result.Add(model.Model);
 
 				// notify delegate
-				if (_delegate != null)
-					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);
+				/*if (_delegate != null)
+					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);*/
 
 				// done 
 				return new QueryResult<T>() 
@@ -489,8 +515,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 {
 
                     // notify delegate
-                    if (_delegate != null)
-                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);
+                    /*if (_delegate != null)
+                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);*/
 
                     // done
                     return new QueryResult<T>()
@@ -504,8 +530,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 {
 
                     // notify delegate
-                    if (_delegate != null)
-                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);
+                    /*if (_delegate != null)
+                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);*/
 
                     // throw exception
                     throw e;
@@ -513,7 +539,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			}
 		}
 		
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken nextToken = null) where T : new()
+		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken nextToken = null) where T : class, new()
 		{			
 			// query the first page
 			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, queryFilters, maxItems, nextToken);
@@ -539,6 +565,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			// Retrieve a reference to the table.
 			return tableClient.GetTableReference(tableName);
 		}
+
+        public TableClient GetTableClient<T>()
+        {
+			var tableName = GetTableName<T>();
+			return GetTableClient(tableName);
+        }
 
         private TableClient GetTableClient(string tableName)
         {

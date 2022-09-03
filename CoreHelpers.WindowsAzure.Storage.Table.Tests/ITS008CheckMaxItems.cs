@@ -59,7 +59,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// Clean up 				
 				await storageContext.DeleteAsync<UserModel2>(allitems);
 				var result = await storageContext.QueryAsync<UserModel2>();
-				Assert.Equal(0, result.Count());
+				Assert.Empty(result);
 
                 await storageContext.DropTableAsync<UserModel2>();
             }						

@@ -1,5 +1,4 @@
-﻿using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
-using CoreHelpers.WindowsAzure.Storage.Table.Tests;
+﻿using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;

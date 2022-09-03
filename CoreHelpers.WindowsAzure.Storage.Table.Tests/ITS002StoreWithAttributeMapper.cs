@@ -10,17 +10,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
     [Collection("Sequential")]
     public class ITS002StoreWithAttributeMapper
     {
-        private readonly ITestEnvironment env;
+        private readonly IStorageContext _rootContext;
 
-        public ITS002StoreWithAttributeMapper(ITestEnvironment env)
+        public ITS002StoreWithAttributeMapper(IStorageContext context)
         {
-            this.env = env;
+            _rootContext = context;
         }
 
         [Fact]
         public async Task VerifyAttributeMapper()
         {
-            using (var storageContext = new StorageContext(env.ConnectionString))
+            using (var storageContext = _rootContext.CreateChildContext())
             {
                 // set the tablename context
                 storageContext.SetTableContext();
@@ -39,7 +39,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // query all                
                 var result = await storageContext.QueryAsync<UserModel2>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Equal("Egon", result.First().FirstName);
                 Assert.Equal("Mueller", result.First().LastName);
                 Assert.Equal("em@acme.org", result.First().Contact);
@@ -48,7 +48,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DeleteAsync<UserModel2>(result);
                 result = await storageContext.QueryAsync<UserModel2>();
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count());
+                Assert.Empty(result);
 
                 await storageContext.DropTableAsync<UserModel2>();
             }

@@ -24,5 +24,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 			} else
 				propertyInfo.SetValue(obj, val, null);
 		}
+
+
+		public static void SetDateTimeOffsetValue(this PropertyInfo property, object obj, object offset)
+		{             
+            if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))                            
+                property.SetValue(obj, ((DateTimeOffset)offset).UtcDateTime);            
+            else if (property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?))            
+                property.SetValue(obj, ((DateTimeOffset)offset));                       
+        }
 	}
 }

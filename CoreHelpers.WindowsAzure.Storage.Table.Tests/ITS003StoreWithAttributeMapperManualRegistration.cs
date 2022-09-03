@@ -12,17 +12,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
     [Collection("Sequential")]
     public class ITS003StoreWithAttributeMapperManualRegistration
 	{
-        private readonly ITestEnvironment env;
+        private readonly IStorageContext _rootContext;
 
-        public ITS003StoreWithAttributeMapperManualRegistration(ITestEnvironment env)
+        public ITS003StoreWithAttributeMapperManualRegistration(IStorageContext context)
         {
-            this.env = env;
+            _rootContext = context;
         }
 
         [Fact]
         public async Task VerifyManualRegistration()
         {			
-			using (var storageContext = new StorageContext(env.ConnectionString))
+			using (var storageContext = _rootContext.CreateChildContext())
             {
                 // set the tablename context
                 storageContext.SetTableContext();
@@ -45,7 +45,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         
                 // query all                
                 var result = await storageContext.QueryAsync<UserModel2>();
-                Assert.Equal(1, result.Count());
+                Assert.Single(result);
                 Assert.Equal("Egon", result.First().FirstName);
                 Assert.Equal("Mueller", result.First().LastName);
                 Assert.Equal("em@acme.org", result.First().Contact);
@@ -53,7 +53,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 var resultVP = await storageContext.QueryAsync<VirtualPartKeyDemoModel>();
                 Assert.NotNull(resultVP);
-                Assert.Equal(1, resultVP.Count());
+                Assert.Single(resultVP);
                 Assert.Equal("abc", resultVP.First().Value1);
                 Assert.Equal("def", resultVP.First().Value2);
                 Assert.Equal("ghi", resultVP.First().Value3);
@@ -62,12 +62,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				await storageContext.DeleteAsync<UserModel2>(result);
                 result = await storageContext.QueryAsync<UserModel2>();
                 Assert.NotNull(result);
-                Assert.Equal(0, result.Count());
+                Assert.Empty(result);
 
                 await storageContext.DeleteAsync<VirtualPartKeyDemoModel>(resultVP);
                 resultVP = await storageContext.QueryAsync<VirtualPartKeyDemoModel>();
                 Assert.NotNull(resultVP);
-                Assert.Equal(0, resultVP.Count());
+                Assert.Empty(resultVP);
 
                 await storageContext.DropTableAsync<UserModel2>();
                 await storageContext.DropTableAsync<VirtualPartKeyDemoModel>();

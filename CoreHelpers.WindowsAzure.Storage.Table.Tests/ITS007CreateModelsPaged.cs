@@ -68,7 +68,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 // Clean up 				
 				await storageContext.DeleteAsync<UserModel2>(result);
 				result = await storageContext.QueryAsync<UserModel2>();
-				Assert.Equal(0, result.Count());
+				Assert.Empty(result);
 
                 await storageContext.DropTableAsync<UserModel2>();
             }						
@@ -116,7 +116,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 				// remove all entries				
 				await storageContext.DeleteAsync<HugeDemoEntry>(items);
 				result = await storageContext.QueryAsync<HugeDemoEntry>();
-				Assert.Equal(0, result.Count());
+				Assert.Empty(result);
 
                 await storageContext.DropTableAsync<HugeDemoEntry>();
             }

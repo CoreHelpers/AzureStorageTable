@@ -1,4 +1,4 @@
-﻿namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
+﻿namespace CoreHelpers.WindowsAzure.Storage.Table
 {
     public enum QueryFilterType
     {
