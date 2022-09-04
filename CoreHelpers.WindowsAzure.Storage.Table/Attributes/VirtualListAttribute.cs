@@ -9,7 +9,7 @@ using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
-	public class VirtualListAttribute : VirtualTypeAttribute, IVirtualTypeAttribute
+	public class VirtualListAttribute : Attribute, IVirtualTypeAttribute
     {
 		private HandlebarsTemplate<object, string> TemplateFunction { get; set; }
 		private string DigitFormat { get; set; }

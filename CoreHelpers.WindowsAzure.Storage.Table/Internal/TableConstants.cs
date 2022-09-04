@@ -15,7 +15,7 @@
 // </copyright>
 // -----------------------------------------------------------------------------------------
 
-namespace CoreHelpers.WindowsAzure.Storage.Table
+namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
 {		
 	using System;
 

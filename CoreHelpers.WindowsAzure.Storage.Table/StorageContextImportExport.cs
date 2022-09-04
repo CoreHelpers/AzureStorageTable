@@ -4,12 +4,12 @@ using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
-using CoreHelpers.WindowsAzure.Storage.Table.Models;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 using System.Linq;
+using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -163,4 +163,3 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         }
     }
 }
-

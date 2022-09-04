@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Delegates
+namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Delegates
 {
 	public class StorageContextStatsDelegate : IStorageContextDelegate
 	{

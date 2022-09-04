@@ -6,11 +6,12 @@ using System.Runtime.Serialization;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
+using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using HandlebarsDotNet;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
-    public static class TableEntityDynamic
+    internal static class TableEntityDynamic
     {        
         public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T: new()
         {

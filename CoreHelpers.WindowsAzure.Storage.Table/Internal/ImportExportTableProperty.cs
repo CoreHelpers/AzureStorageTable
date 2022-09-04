@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Models
+namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
 {
     internal class ImportExportTablePropertyEntity
     {

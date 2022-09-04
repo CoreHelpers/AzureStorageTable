@@ -32,12 +32,14 @@
     <None Remove="Xunit.DependencyInjection" />
     <None Remove="TestEnvironments\" />
     <None Remove="Extensions\" />
+    <None Remove="Delegates\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
     <Folder Include="Contracts\" />
     <Folder Include="TestEnvironments\" />
     <Folder Include="Extensions\" />
+    <Folder Include="Delegates\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table\CoreHelpers.WindowsAzure.Storage.Table.csproj" />

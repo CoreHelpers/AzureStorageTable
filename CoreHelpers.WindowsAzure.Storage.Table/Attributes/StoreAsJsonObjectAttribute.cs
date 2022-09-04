@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
 {
 	[AttributeUsage(AttributeTargets.Property)]
-	public class StoreAsJsonObjectAttribute : StoreAsAttribute, IVirtualTypeAttribute
+	public class StoreAsJsonObjectAttribute : Attribute, IVirtualTypeAttribute
     {	
 		protected Type ObjectType { get; set; }
 		

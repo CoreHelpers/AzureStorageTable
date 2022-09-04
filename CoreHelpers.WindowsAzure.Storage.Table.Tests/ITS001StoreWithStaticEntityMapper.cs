@@ -1,6 +1,6 @@
 ﻿using System;
-using CoreHelpers.WindowsAzure.Storage.Table.Delegates;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
+using CoreHelpers.WindowsAzure.Storage.Table.Tests.Delegates;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
 using Xunit.DependencyInjection;
