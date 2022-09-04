@@ -8,20 +8,21 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 {
     [Startup(typeof(Startup))]
     [Collection("Sequential")]
-    public class ITS016BackupRestore
-    {
-        private readonly ITestEnvironment env;
+    public class ITS016ExportToJson
+    {        
+        private readonly IStorageContext _rootContext;
 
-        public ITS016BackupRestore(ITestEnvironment env)
+        public ITS016ExportToJson(IStorageContext context)
         {
-            this.env = env;
+            _rootContext = context;
+
         }
 
         [Fact]
         public async Task VerifyExportToJson()
         {
             // Export Table
-            using (var storageContext = new StorageContext(env.ConnectionString))
+            using (var storageContext = _rootContext.CreateChildContext())
             {
                 // set the tablename context
                 storageContext.SetTableContext();

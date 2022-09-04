@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
-using System.IO;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
-using CoreHelpers.WindowsAzure.Storage.Table.Services;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using Azure.Data.Tables;
@@ -14,12 +12,10 @@ using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 using System.Threading;
 using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
-using Newtonsoft.Json;
-using System.Diagnostics;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {	
-	public class StorageContext : IStorageContext
+	public partial class StorageContext : IStorageContext
 	{				
 		private Dictionary<Type, StorageEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, StorageEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
@@ -441,83 +437,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 				tables.AddRange(tablePage.Values.Select(t => t.Name));                           
 			
             return tables;
-        }
-
-        public async Task ExportToJsonAsync(string tableName, TextWriter writer, Action<ImportExportOperation> onOperation)
-        {
-            try
-            {
-                var tc = GetTableClient(GetTableName(tableName));
-
-                var existsTable = await tc.ExistsAsync();
-                if (!existsTable)                    
-                    throw new FileNotFoundException($"Table '{tableName}' does not exist");
-                                
-                // build the json writer
-                JsonWriter wr = new JsonTextWriter(writer);
-
-                // prepare the array in result
-                wr.WriteStartArray();
-
-                // enumerate all items from a table
-                var tablePages = tc.QueryAsync<TableEntity>().AsPages();
-
-                // do the backup
-                await foreach (var page in tablePages)
-                {
-                    if (onOperation!= null)
-                        onOperation(ImportExportOperation.processingPage);
-
-                    foreach (var entity in page.Values)
-                    {
-                        if (onOperation != null)
-                            onOperation(ImportExportOperation.processingItem);
-
-                        wr.WriteStartObject();
-                        wr.WritePropertyName(TableConstants.RowKey);
-                        wr.WriteValue(entity.RowKey);
-                        wr.WritePropertyName(TableConstants.PartitionKey);
-                        wr.WriteValue(entity.PartitionKey);
-                        wr.WritePropertyName(TableConstants.Properties);
-                        wr.WriteStartArray();
-                        foreach (var propertyKvp in entity)
-                        {
-                            if (propertyKvp.Key.Equals(TableConstants.PartitionKey) || propertyKvp.Key.Equals(TableConstants.RowKey) || propertyKvp.Key.Equals("odata.etag") || propertyKvp.Key.Equals(TableConstants.Timestamp))
-                                continue;
-
-                            wr.WriteStartObject();
-                            wr.WritePropertyName(TableConstants.PropertyName);
-                            wr.WriteValue(propertyKvp.Key);
-                            wr.WritePropertyName(TableConstants.PropertyType);
-                            wr.WriteValue(propertyKvp.Value.GetType().ToString());
-                            wr.WritePropertyName(TableConstants.PropertyValue);
-                            wr.WriteValue(propertyKvp.Value);
-                            wr.WriteEndObject();
-                        }
-                        wr.WriteEnd();
-                        wr.WriteEndObject();
-                    }
-
-                    if (onOperation != null)
-                        onOperation(ImportExportOperation.processedPage);
-                }
-
-                // finishe the export
-                wr.WriteEnd();
-                wr.Flush();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-        }    
-
-        public async Task ImportFromJsonAsync(string tableName, StreamReader reader) 
-        {
-            /*var importer = new DataImportService(this);
-            await importer.ImportFromJsonStreamAsync(tableName, reader);*/
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        }            
+        }                  
     }
 }

@@ -41,7 +41,6 @@
     <Folder Include="Attributes\" />
     <Folder Include="Extensions\" />
     <Folder Include="Delegates\" />
-    <Folder Include="Services\" />
     <Folder Include="Internal\" />
     <Folder Include="Serialization\" />
   </ItemGroup>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
@@ -19,6 +20,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         void AddAttributeMapper();
 
         void AddAttributeMapper(Type type);
+
+        void AddAttributeMapper(Type type, String optionalTablenameOverride);
 
         void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, String tableName);
 
@@ -70,5 +73,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         Task<List<string>> QueryTableList();
 
         Task ExportToJsonAsync(string tableName, TextWriter writer, Action<ImportExportOperation> onOperation);
+
+        Task ImportFromJsonAsync(string tableName, StreamReader reader, Action<ImportExportOperation> onOperation);
     }
 }
