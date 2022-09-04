@@ -3,7 +3,16 @@ using System.Collections.Generic;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
-	public interface IStorageContextDelegate
+    public enum nStoreOperation
+    {
+        insertOperation,
+        insertOrReplaceOperation,
+        mergeOperation,
+        mergeOrInserOperation,
+        delete
+    }
+
+    public interface IStorageContextDelegate
 	{
 		void OnQuerying(Type modelType, string filter, int maxItems, bool isContinuationQuery);
 

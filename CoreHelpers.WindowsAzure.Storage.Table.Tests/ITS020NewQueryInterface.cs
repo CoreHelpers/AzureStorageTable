@@ -63,6 +63,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 Assert.Equal("P2", partition2Items.First().P);
                 Assert.Equal("E1", partition2Items.First().R);
                 Assert.Equal("Demo03", partition2Items.First().StringField);
+
+                // cleanup
+                await scp.DropTableAsync<DemoEntityQuery>();
             }
         }
 
@@ -109,6 +112,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 Assert.Equal("P2", itemP2.First().P);
                 Assert.Equal("E1", itemP2.First().R);
                 Assert.Equal("Demo03", itemP2.First().StringField);
+
+                // cleanup
+                await scp.DropTableAsync<DemoEntityQuery>();
             }
         }
 
@@ -152,7 +158,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 Assert.Equal(2, result02.Count());
                 Assert.Equal("E2", result02.First().R);
-                Assert.Equal("E4", result02.Last().R);                
+                Assert.Equal("E4", result02.Last().R);
+
+                // cleanup
+                await scp.DropTableAsync<DemoEntityQuery>();
             }
         }
 
@@ -218,8 +227,81 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // query just a rowkey
                 Assert.Equal(2, (await scp.Query<DemoEntityQuery>().InAllPartitions().GetItem("E10").LimitTo(5).Now()).Count());
+
+                // cleanup
+                await scp.DropTableAsync<DemoEntityQuery>();
             }
         }
     }
 }
 
+
+// TODO: Test all datatypers
+
+/*case EdmType.String:
+						if (propertyType != typeof(string))
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.StringValue, isCollection);
+						break;
+					case EdmType.Binary:
+						if (propertyType != typeof(byte[]))						
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.BinaryValue, isCollection);
+						break;
+					case EdmType.Boolean:
+						if (propertyType != typeof(bool) && propertyType != typeof(bool?))						
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.BooleanValue, isCollection);
+						break;
+					case EdmType.DateTime:
+						if (propertyType == typeof(DateTime))
+						{
+							property.SetOrAddValue(entity, entityProperty.DateTimeOffsetValue.Value.UtcDateTime, isCollection);
+						}
+						else if (propertyType == typeof(DateTime?))
+						{
+							property.SetOrAddValue(entity, entityProperty.DateTimeOffsetValue.HasValue ? entityProperty.DateTimeOffsetValue.Value.UtcDateTime : (DateTime?)null, isCollection);
+						}
+						else if (propertyType == typeof(DateTimeOffset))
+						{
+							property.SetOrAddValue(entity, entityProperty.DateTimeOffsetValue.Value, isCollection);
+						}
+						else if (propertyType == typeof(DateTimeOffset?))
+						{
+							property.SetOrAddValue(entity, entityProperty.DateTimeOffsetValue, isCollection);
+						}
+
+						break;
+					case EdmType.Double:
+						if (propertyType != typeof(double) && propertyType != typeof(double?))						
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.DoubleValue, isCollection);
+						break;
+					case EdmType.Guid:
+						if (propertyType != typeof(Guid) && propertyType != typeof(Guid?))						
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.GuidValue, isCollection);
+						break;
+					case EdmType.Int32:
+						if (propertyType != typeof(int) && propertyType != typeof(int?) &&
+							propertyType != typeof(double) && propertyType != typeof(double?))												
+							break;
+
+						if (propertyType == typeof(double) || propertyType == typeof(double?))
+							property.SetOrAddValue(entity, Convert.ToDouble(entityProperty.Int32Value), isCollection);
+						else												
+							property.SetOrAddValue(entity, entityProperty.Int32Value, isCollection);
+							
+						break;
+					case EdmType.Int64:
+						if (propertyType != typeof(long) && propertyType != typeof(long?))						
+							break;						
+
+						property.SetOrAddValue(entity, entityProperty.Int64Value, isCollection);
+						break;
+				}*/

@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
+namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
 {
     public class ZippedStreamWriter : StreamWriter
     {    

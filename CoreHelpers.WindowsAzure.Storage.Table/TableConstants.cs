@@ -16,8 +16,7 @@
 // -----------------------------------------------------------------------------------------
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
-{	
-	using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+{		
 	using System;
 
 	/// <summary>
@@ -59,12 +58,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		/// The maximum size of a string property for the Table service in bytes.
 		/// </summary>
 		public const int TableServiceMaxStringPropertySizeInBytes = 64 * 1024;
-
-		/// <summary>
-		/// The maximum size of a string property for the Table service in bytes.
-		/// </summary>
-		public const long TableServiceMaxPayload = 20 * Constants.MB;
-
+		
 		/// <summary>
 		/// The maximum size of a string property for the Table service in chars.
 		/// </summary>

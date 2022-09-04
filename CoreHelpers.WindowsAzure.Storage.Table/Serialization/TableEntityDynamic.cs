@@ -12,7 +12,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
     public static class TableEntityDynamic
     {        
-        public static TableEntity ToEntity<T>(T model, DynamicTableEntityMapper entityMapper) where T: new()
+        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T: new()
         {
             var builder = new TableEntityBuilder();
 
@@ -42,7 +42,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             return builder.Build();
         }
 
-        public static T fromEntity<T>(TableEntity entity, DynamicTableEntityMapper entityMapper) where T : class, new()
+        public static T fromEntity<T>(TableEntity entity, StorageEntityMapper entityMapper) where T : class, new()
         {
             // create the target model
             var model = new T();

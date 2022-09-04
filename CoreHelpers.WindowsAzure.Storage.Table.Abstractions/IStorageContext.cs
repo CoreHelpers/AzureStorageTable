@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
+    public enum ImportExportOperation
+    {
+        processingItem,
+        processingPage,
+        processedPage
+    }
+
     public interface IStorageContext : IDisposable
     {
         void AddAttributeMapper();
@@ -36,7 +44,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             where T : class, new();
 
         Task<IEnumerable<T>> QueryAsync<T>(int maxItems = 0) where T : class, new();
-        
+
         Task DeleteAsync<T>(T model) where T : class, new();
 
         Task DeleteAsync<T>(IEnumerable<T> models, bool allowMultiPartionRemoval = false) where T : class, new();
@@ -53,10 +61,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         void CreateTable<T>(bool ignoreErrorIfExists = true);
 
-        Task <bool> ExistsTableAsync<T>();
+        Task<bool> ExistsTableAsync<T>();
 
         Task DropTableAsync<T>(bool ignoreErrorIfNotExists = true);
 
-        void DropTable<T>(bool ignoreErrorIfNotExists = true);        
+        void DropTable<T>(bool ignoreErrorIfNotExists = true);
+
+        Task<List<string>> QueryTableList();
+
+        Task ExportToJsonAsync(string tableName, TextWriter writer, Action<ImportExportOperation> onOperation);
     }
 }

@@ -5,7 +5,6 @@ using CoreHelpers.WindowsAzure.Storage.Table.Tests;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
-using Microsoft.WindowsAzure.Storage;
 using Xunit.DependencyInjection;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
@@ -37,7 +36,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 var tableName = $"T{Guid.NewGuid().ToString()}".Replace("-", "");
 
                 // ensure we are using the attributes                
-                storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+                storageContext.AddEntityMapper(typeof(UserModel), new StorageEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
 
                 // inser the model and do not create table
                 Assert.Throws<AggregateException>(() => storageContext.MergeOrInsertAsync<UserModel>(user).Wait());
@@ -73,7 +72,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 var tableName = $"T{Guid.NewGuid().ToString()}".Replace("-", "");
 
                 // ensure we are using the attributes                
-                storageContext.AddEntityMapper(typeof(UserModel), new DynamicTableEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
+                storageContext.AddEntityMapper(typeof(UserModel), new StorageEntityMapper() { TableName = tableName, PartitionKeyFormat = "Contact", RowKeyFormat = "Contact" });
 
                 // query all and expect exception
                 Assert.Throws<Azure.RequestFailedException>(() => storageContext.Query<UserModel>().Now().GetAwaiter().GetResult().FirstOrDefault()); ;

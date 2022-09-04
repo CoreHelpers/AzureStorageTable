@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
-using Microsoft.WindowsAzure.Storage;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
 {

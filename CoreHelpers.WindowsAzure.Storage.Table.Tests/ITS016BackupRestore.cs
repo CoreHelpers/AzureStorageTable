@@ -2,8 +2,6 @@
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Models;
-using Microsoft.WindowsAzure.Storage;
-using Newtonsoft.Json;
 using Xunit.DependencyInjection;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
@@ -42,7 +40,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 var targetStream = new MemoryStream();
                 using (var textWriter = new StreamWriter(targetStream))
                 {
-                    await storageContext.ExportToJsonAsync(tableName1, textWriter);
+                    await storageContext.ExportToJsonAsync(tableName1, textWriter, (ImportExportOperation operation) => { });
                 }
 
                 // verify the targetstream

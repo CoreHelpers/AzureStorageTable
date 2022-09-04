@@ -1,6 +1,4 @@
 ﻿using CoreHelpers.WindowsAzure.Storage.Table.Models;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -10,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Services
 {
-    internal class DataImportService : DataService
+    /*internal class DataImportService : DataService
     {
         public const string TableName = "CoreHelpersTableImportLogs";
 
@@ -129,5 +127,5 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Services
                 throw;
             }
         }
-    }
+    }*/
 }

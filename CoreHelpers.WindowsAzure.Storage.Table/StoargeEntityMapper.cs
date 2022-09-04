@@ -2,16 +2,16 @@
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
-	public class DynamicTableEntityMapper
+	public class StorageEntityMapper
 	{
 		public String PartitionKeyFormat { get; set; }
 		public String RowKeyFormat { get; set; }
 		public String TableName { get; set; }
 
-        public DynamicTableEntityMapper() 
+        public StorageEntityMapper() 
         {}
 
-        public DynamicTableEntityMapper(DynamicTableEntityMapper src) 
+        public StorageEntityMapper(StorageEntityMapper src) 
         {
             this.PartitionKeyFormat = src.PartitionKeyFormat;
             this.RowKeyFormat = src.RowKeyFormat;

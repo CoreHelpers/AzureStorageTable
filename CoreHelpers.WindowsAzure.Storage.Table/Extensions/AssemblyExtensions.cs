@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table
+namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 {
     public static class AssemblyExtensions
     {

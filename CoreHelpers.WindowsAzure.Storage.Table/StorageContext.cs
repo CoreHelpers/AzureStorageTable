@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using System.IO;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
@@ -16,19 +14,14 @@ using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 using System.Threading;
 using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
+using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
-{
-	public class QueryResult<T>
-	{
-		public IQueryable<T> Items { get; internal set; }
-		public TableContinuationToken NextToken { get; internal set; }
-	}
-	
+{	
 	public class StorageContext : IStorageContext
-	{		
-		private CloudStorageAccount _storageAccount { get; set; }
-		private Dictionary<Type, DynamicTableEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, DynamicTableEntityMapper>();
+	{				
+		private Dictionary<Type, StorageEntityMapper> _entityMapperRegistry { get; set; } = new Dictionary<Type, StorageEntityMapper>();
 		private bool _autoCreateTable { get; set; } = false;
 		private IStorageContextDelegate _delegate { get; set; }
 		private string _tableNamePrefix;
@@ -38,24 +31,18 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		{
             _connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2}", "https", storageAccountName, storageAccountKey);
 			if (!String.IsNullOrEmpty(storageEndpointSuffix))
-                _connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);
-			
-			_storageAccount = CloudStorageAccount.Parse(_connectionString);
+                _connectionString = String.Format("DefaultEndpointsProtocol={0};AccountName={1};AccountKey={2};EndpointSuffix={3}", "https", storageAccountName, storageAccountKey, storageEndpointSuffix);					
 		}
 
         public StorageContext(string connectionString)
         {
 			_connectionString = connectionString;
-            _storageAccount = CloudStorageAccount.Parse(_connectionString);
         }
 
         public StorageContext(StorageContext parentContext)
-		{
-            // we reference the storage account
-			_storageAccount = parentContext._storageAccount;
-			
+		{            
             // we reference the entity mapper
-            _entityMapperRegistry = new Dictionary<Type, DynamicTableEntityMapper>(parentContext._entityMapperRegistry);
+            _entityMapperRegistry = new Dictionary<Type, StorageEntityMapper>(parentContext._entityMapperRegistry);
 
             // we are using the delegate
 			this.SetDelegate(parentContext._delegate);
@@ -98,14 +85,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _autoCreateTable;
         }
 
-        public void AddEntityMapper(Type entityType, DynamicTableEntityMapper entityMapper)
+        public void AddEntityMapper(Type entityType, StorageEntityMapper entityMapper)
 		{
 			_entityMapperRegistry.Add(entityType, entityMapper);
 		}
 
         public void AddEntityMapper(Type entityType, string partitionKeyFormat, string rowKeyFormat, string tableName)
         {
-            _entityMapperRegistry.Add(entityType, new DynamicTableEntityMapper()
+            _entityMapperRegistry.Add(entityType, new StorageEntityMapper()
 			{
 				PartitionKeyFormat = partitionKeyFormat,
 				RowKeyFormat = rowKeyFormat,
@@ -179,7 +166,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 throw new Exception("Missing Partition or RowKey Attribute");
                 
             // build the mapper
-            AddEntityMapper(type, new DynamicTableEntityMapper()
+            AddEntityMapper(type, new StorageEntityMapper()
             {
                 TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? storableAttribute.Tablename : optionalTablenameOverride,
                 PartitionKeyFormat = partitionKeyFormat,
@@ -192,7 +179,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 			return _entityMapperRegistry.Keys;
         }
 
-        public DynamicTableEntityMapper GetEntityMapper<T>()
+        public StorageEntityMapper GetEntityMapper<T>()
         {
 			return _entityMapperRegistry[typeof(T)];
         }
@@ -213,7 +200,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             {
                 // copy the mapper entry becasue it could be referenced 
                 // from parent context
-                var duplicatedMapper = new DynamicTableEntityMapper(_entityMapperRegistry[entityType]);
+                var duplicatedMapper = new StorageEntityMapper(_entityMapperRegistry[entityType]);
 
                 // override the table name
                 duplicatedMapper.TableName = tableName;
@@ -406,14 +393,14 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 					foreach (var model in models)
 					{
 						// convert the model to a dynamic entity
-						var t = new DynamicTableEntity<T>(model, entityMapper);
+						var t = TableEntityDynamic.ToEntity<T>(model, entityMapper);
 
 						// lookup the partitionkey list
 						if (!partionKeyDictionary.ContainsKey(t.PartitionKey))
 							partionKeyDictionary.Add(t.PartitionKey, new List<T>());
 
 						// add the model to the list
-						partionKeyDictionary[t.PartitionKey].Add(t.Model);
+						partionKeyDictionary[t.PartitionKey].Add(model);
 					}
 
 					// remove the different batches
@@ -431,141 +418,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         {
 			return new StorageContextQueryWithPartitionKey<T>(this);
         }
-
-		
-		
-		internal async Task<QueryResult<T>> QueryAsyncInternalSinglePage<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken continuationToken = null) where T : new()
-		{
-			try
-			{
-				// notify delegate
-				/*if (_delegate != null)
-					_delegate.OnQuerying(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null);				*/
-					
-				// Retrieve a reference to the table.
-				var table = GetTableReference(GetTableName<T>());
-
-				// lookup the entitymapper
-				var entityMapper = _entityMapperRegistry[typeof(T)];
-
-				// Construct the query to get all entries
-				TableQuery<DynamicTableEntity<T>> query = new TableQuery<DynamicTableEntity<T>>();
-
-				// add partitionkey if exists		
-				string partitionKeyFilter = null;
-				if (partitionKey != null)
-					partitionKeyFilter = TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, partitionKey);
-
-				// add row key if exists
-				string rowKeyFilter = null;
-				if (rowKey != null)
-					rowKeyFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey);
-
-                // define the max query items
-				if (maxItems > 0)
-					query = query.Take(maxItems);
-					
-				// build the query filter
-				if (partitionKey != null && rowKey != null)
-					query = query.Where(TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, rowKeyFilter));
-				else if (partitionKey != null && rowKey == null)
-					query = query.Where(partitionKeyFilter);										
-				else if (partitionKey == null && rowKey != null)
-					throw new Exception("PartitionKey must have a value");
-
-                // build the final query filter
-                if (queryFilters != null)
-                {
-                    foreach (var queryFilter in queryFilters)
-                    {
-                        var generatedQueryFilter = queryFilter.ToFilterString();
-
-                        if (String.IsNullOrEmpty(query.FilterString))
-                            query.Where(generatedQueryFilter);
-                        else if (queryFilter.FilterType == QueryFilterType.Where || queryFilter.FilterType == QueryFilterType.And)
-                            query.Where(TableQuery.CombineFilters(query.FilterString, TableOperators.And, generatedQueryFilter));
-                        else if (queryFilter.FilterType == QueryFilterType.Or)
-                            query.Where(TableQuery.CombineFilters(query.FilterString, TableOperators.Or, generatedQueryFilter));
-                    }
-                }
-
-                // execute the query											
-                var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
 				
-				// map all to the original models
-				List<T> result = new List<T>();
-				foreach (DynamicTableEntity<T> model in queryResult)
-					result.Add(model.Model);
-
-				// notify delegate
-				/*if (_delegate != null)
-					_delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);*/
-
-				// done 
-				return new QueryResult<T>() 
-				{ 
-					Items = result.AsQueryable(), 
-					NextToken = queryResult.ContinuationToken 
-				};
-				
-			} catch(Exception e) {
-
-                // check if we have autocreate
-                if (_autoCreateTable || e.Message.StartsWith("0:The table specified does not exist", StringComparison.CurrentCulture))
-                {
-
-                    // notify delegate
-                    /*if (_delegate != null)
-                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, null);*/
-
-                    // done
-                    return new QueryResult<T>()
-                    {
-                        Items = new List<T>().AsQueryable<T>(),
-                        NextToken = null
-                    };
-
-                }
-                else
-                {
-
-                    // notify delegate
-                    /*if (_delegate != null)
-                        _delegate.OnQueryed(typeof(T), partitionKey, rowKey, maxItems, continuationToken != null, e);*/
-
-                    // throw exception
-                    throw e;
-                }
-			}
-		}
-		
-		private async Task<IQueryable<T>> QueryAsyncInternal<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0, TableContinuationToken nextToken = null) where T : class, new()
-		{			
-			// query the first page
-			var result = await QueryAsyncInternalSinglePage<T>(partitionKey, rowKey, queryFilters, maxItems, nextToken);
-			
-			// check if we have reached the max items
-			if (maxItems > 0 && result.Items.Count() >= maxItems)
-				return result.Items;
-			
-			if (result.NextToken != null) 						
-				return result.Items.Concat(await this.QueryAsyncInternal<T>(partitionKey, rowKey, queryFilters, maxItems, result.NextToken));
-			else 			
-				return result.Items;					
-		}
-	
-		private CloudTable GetTableReference(string tableName) {
-			
-			// create the table client 
-			var storageTableClient = _storageAccount.CreateCloudTableClient();
-
-			// Create the table client.
-			CloudTableClient tableClient = _storageAccount.CreateCloudTableClient();
-
-			// Retrieve a reference to the table.
-			return tableClient.GetTableReference(tableName);
-		}
-
         public TableClient GetTableClient<T>()
         {
 			var tableName = GetTableName<T>();
@@ -576,56 +429,95 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         {
 			return new TableClient(_connectionString, tableName);            
         }
-
-        internal CloudTable RequestTableReference(string tableName)
-        {
-			var tableNamePatched = GetTableName(tableName);
-			return GetTableReference(tableNamePatched);
-        }
-
-
-        public StorageContextQueryCursor<T> QueryPaged<T>(string partitionKey, string rowKey, IEnumerable<QueryFilter> queryFilters = null, int maxItems = 0) where T : new()
-		{
-			return new StorageContextQueryCursor<T>(this, partitionKey, rowKey, queryFilters, maxItems);
-		}
-
+                
         public async Task<List<string>> QueryTableList() {
 
             var tables = new List<string>();
 
-            TableContinuationToken token = null;
-            do
-            {
-                var tableClient = _storageAccount.CreateCloudTableClient();
-                var segmentResult = await tableClient.ListTablesSegmentedAsync(token);
-                token = segmentResult.ContinuationToken;
-                tables.AddRange(segmentResult.Results.Select(t => t.Name));
+			var tsc = new TableServiceClient(_connectionString);
+			var tablePages = tsc.QueryAsync().AsPages();
 
-            } while (token != null);
-
+			await foreach(var tablePage in tablePages)
+				tables.AddRange(tablePage.Values.Select(t => t.Name));                           
+			
             return tables;
         }
 
-        public async Task ExportToJsonAsync(string tableName, TextWriter writer)
+        public async Task ExportToJsonAsync(string tableName, TextWriter writer, Action<ImportExportOperation> onOperation)
         {
-            var logsTable = GetTableReference(GetTableName(DataExportService.TableName));
+            try
+            {
+                var tc = GetTableClient(GetTableName(tableName));
 
-			if (!await logsTable.ExistsAsync())
-				await logsTable.CreateIfNotExistsAsync();
+                var existsTable = await tc.ExistsAsync();
+                if (!existsTable)                    
+                    throw new FileNotFoundException($"Table '{tableName}' does not exist");
+                                
+                // build the json writer
+                JsonWriter wr = new JsonTextWriter(writer);
 
-            var exporter = new DataExportService(this);
-            await exporter.ExportToJson(tableName, writer);
-        }
+                // prepare the array in result
+                wr.WriteStartArray();
+
+                // enumerate all items from a table
+                var tablePages = tc.QueryAsync<TableEntity>().AsPages();
+
+                // do the backup
+                await foreach (var page in tablePages)
+                {
+                    if (onOperation!= null)
+                        onOperation(ImportExportOperation.processingPage);
+
+                    foreach (var entity in page.Values)
+                    {
+                        if (onOperation != null)
+                            onOperation(ImportExportOperation.processingItem);
+
+                        wr.WriteStartObject();
+                        wr.WritePropertyName(TableConstants.RowKey);
+                        wr.WriteValue(entity.RowKey);
+                        wr.WritePropertyName(TableConstants.PartitionKey);
+                        wr.WriteValue(entity.PartitionKey);
+                        wr.WritePropertyName(TableConstants.Properties);
+                        wr.WriteStartArray();
+                        foreach (var propertyKvp in entity)
+                        {
+                            if (propertyKvp.Key.Equals(TableConstants.PartitionKey) || propertyKvp.Key.Equals(TableConstants.RowKey) || propertyKvp.Key.Equals("odata.etag") || propertyKvp.Key.Equals(TableConstants.Timestamp))
+                                continue;
+
+                            wr.WriteStartObject();
+                            wr.WritePropertyName(TableConstants.PropertyName);
+                            wr.WriteValue(propertyKvp.Key);
+                            wr.WritePropertyName(TableConstants.PropertyType);
+                            wr.WriteValue(propertyKvp.Value.GetType().ToString());
+                            wr.WritePropertyName(TableConstants.PropertyValue);
+                            wr.WriteValue(propertyKvp.Value);
+                            wr.WriteEndObject();
+                        }
+                        wr.WriteEnd();
+                        wr.WriteEndObject();
+                    }
+
+                    if (onOperation != null)
+                        onOperation(ImportExportOperation.processedPage);
+                }
+
+                // finishe the export
+                wr.WriteEnd();
+                wr.Flush();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }    
 
         public async Task ImportFromJsonAsync(string tableName, StreamReader reader) 
         {
-            var logsTable = GetTableReference(GetTableName(DataImportService.TableName));
-
-            if (!await logsTable.ExistsAsync())
-                await logsTable.CreateIfNotExistsAsync();
-            
-            var importer = new DataImportService(this);
-            await importer.ImportFromJsonStreamAsync(tableName, reader);
-        }        
+            /*var importer = new DataImportService(this);
+            await importer.ImportFromJsonStreamAsync(tableName, reader);*/
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        }            
     }
 }
