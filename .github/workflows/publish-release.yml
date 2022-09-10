@@ -45,6 +45,12 @@ jobs:
 
       - name: Pack Implementation
         run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
+        
+      - name: Pack Backup Abstraction
+        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .
+
+      - name: Pack Backup Implementation
+        run: dotnet pack ./CoreHelpers.WindowsAzure.Storage.Table.Backup --configuration Release -p:PackageVersion=${{ steps.get_version.outputs.release_version }} --output .  
 
       - name: Upload Nuget Package to release
         uses: svenstaro/upload-release-action@v2
@@ -63,6 +69,24 @@ jobs:
           asset_name: CoreHelpers.WindowsAzure.Storage.Table.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
           tag: ${{ steps.get_version.outputs.release_tag }}
           overwrite: true
+       
+      - name: Upload Nuget Package to release (Backup)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: CoreHelpers.WindowsAzure.Storage.Table.Backup.${{ steps.get_version.outputs.release_version }}.nupkg
+          asset_name: CoreHelpers.WindowsAzure.Storage.Table.Backup.${{ steps.get_version.outputs.release_version }}.nupkg
+          tag: ${{ steps.get_version.outputs.release_tag }}
+          overwrite: true 
+       
+      - name: Upload Nuget Package to release (Backup Abtractions)
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
+          asset_name: CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions.${{ steps.get_version.outputs.release_version }}.nupkg
+          tag: ${{ steps.get_version.outputs.release_tag }}
+          overwrite: true  
           
       - name: Publish NuGet
         run: dotnet nuget push ./*.nupkg --api-key ${{ secrets.NUGET_TOKEN }} -s https://api.nuget.org/v3/index.json
