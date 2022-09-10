@@ -17,4 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\CoreHelpers.WindowsAzure.Storage.Table.Abstractions\CoreHelpers.WindowsAzure.Storage.Table.Abstractions.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+        <None Include="..\LICENSE" Pack="true" PackagePath="" />
+    </ItemGroup>
 </Project>
