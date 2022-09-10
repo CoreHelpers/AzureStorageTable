@@ -61,12 +61,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
                     _logger.LogInformation($"Statsfile is under {memoryStatsFile}...");
                     statsFile.WriteLine($"TableName,PageCounter,ItemCount,MemoryFootprint");
 
+                    // calculate the real prefix
+                    var effectiveTableNamePrefix = String.IsNullOrEmpty(_targetTableNamePrefix) ? "" : _targetTableNamePrefix;
+                    if (!String.IsNullOrEmpty(storageContext.GetTableNamePrefix()))
+                        effectiveTableNamePrefix = $"{storageContext.GetTableNamePrefix()}{_targetTableNamePrefix}";
+
                     // visit every table
                     foreach (var tableName in tables)
                     {
 
                         // filter the table prefix
-                        if (!String.IsNullOrEmpty(_targetTableNamePrefix) && !tableName.StartsWith(_targetTableNamePrefix, StringComparison.CurrentCulture))
+                        if (!String.IsNullOrEmpty(effectiveTableNamePrefix) && !tableName.StartsWith(effectiveTableNamePrefix, StringComparison.CurrentCulture))
                         {
                             _logger.LogInformation($"Ignoring table {tableName}...");
                             continue;
@@ -80,9 +85,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
                         }
 
                         using (_logger.BeginScope($"Processing backup for table {tableName}..."))
-                        {                            
+                        {
                             // do the backup
-                            var fileName = $"{tableName}.json";
+                            var prefixLessTableName = tableName.Remove(0, effectiveTableNamePrefix.Length);
+                            var fileName = $"{prefixLessTableName}.json";
                             if (!string.IsNullOrEmpty(_targetPath)) { fileName = $"{_targetPath}/{fileName}"; }
                             if (compress) { fileName += ".gz"; }
 
@@ -96,7 +102,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
                                 _logger.LogInformation($"Writing backup to non compressed file");
 
                             // do it                    
-                            using (var backupFileStream = await blobClient.OpenWriteAsync(false))
+                            using (var backupFileStream = await blobClient.OpenWriteAsync(true))
                             {
                                 using (var contentWriter = new ZippedStreamWriter(backupFileStream, compress))
                                 {
@@ -105,7 +111,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
 
                                     var pageLogScope = default(IDisposable);
 
-                                    await storageContext.ExportToJsonAsync(tableName, contentWriter, (ImportExportOperation operation) =>
+                                    // get the effective tablename
+                                    var effectiveTableName = tableName;
+                                    if (!String.IsNullOrEmpty(storageContext.GetTableNamePrefix()))
+                                        effectiveTableName = effectiveTableName.Remove(0, storageContext.GetTableNamePrefix().Length);
+
+                                    // start export
+                                    await storageContext.ExportToJsonAsync(effectiveTableName, contentWriter, (ImportExportOperation operation) =>
                                     {
                                         switch (operation)
                                         {

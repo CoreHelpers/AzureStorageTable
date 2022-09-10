@@ -26,7 +26,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
         public async Task<IRestoreContext> OpenRestorContext(string sourceBlobStorageConnectionString, string sourceContainerName, string sourcePath, string tableNamePrefix = null)
         {
             await Task.CompletedTask;
-            return new RestoreContext();
+            return new RestoreContext(
+                _loggerFactory.CreateLogger<RestoreContext>(),
+                sourceBlobStorageConnectionString, sourceContainerName, sourcePath,
+                tableNamePrefix);
         }
     }
 }

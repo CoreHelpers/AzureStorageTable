@@ -1,93 +1,109 @@
 ﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
 {
     public class RestoreContext : IRestoreContext
     {
-        public RestoreContext()
+        private ILogger<RestoreContext> _logger;
+        private BlobServiceClient _blobServiceClient;
+
+        private string _sourceConnectionString;
+        private string _sourceContainer;
+        private string _sourcePath;
+        private string _sourceTableNamePrefix;
+
+        public RestoreContext(ILogger<RestoreContext> logger, string connectionString, string container, string path, string tableNamePrefix)
         {
+            _logger = logger;
+            _blobServiceClient = new BlobServiceClient(connectionString);
+
+            _sourceConnectionString = connectionString;
+            _sourceContainer = container;
+            _sourcePath = path;
+            _sourceTableNamePrefix = tableNamePrefix;
         }
 
         public void Dispose()
+        {            
+        }
+
+        public async Task Restore(IStorageContext storageContext, string[] excludedTables = null)
         {
-            throw new NotImplementedException();
+            using (_logger.BeginScope("Starting restore procedure..."))
+            {
+                // get the container reference
+                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_sourceContainer);
+                if (!await blobContainerClient.ExistsAsync())
+                    throw new Exception("Container not found");
+
+                // check if the container exists                
+                if (!await blobContainerClient.ExistsAsync())
+                {
+                    _logger.LogInformation($"Missing container {_sourceContainer.ToLower()}");
+                    return;
+                }
+
+                // build the path including prefix 
+                _logger.LogInformation($"Search Prefix is {_sourcePath}");
+
+                // get the pages
+                var blobPages = blobContainerClient.GetBlobsAsync(Azure.Storage.Blobs.Models.BlobTraits.None, Azure.Storage.Blobs.Models.BlobStates.None, _sourcePath).AsPages();
+
+                // visit every page
+                await foreach (var page in blobPages)
+                {
+                    foreach(var blob in page.Values)
+                    {
+                        // build the name 
+                        var blobName = blob.Name;
+                        
+                        // get the tablename 
+                        var tableName = Path.GetFileNameWithoutExtension(blobName);
+                        var compressed = blobName.EndsWith(".gz", StringComparison.CurrentCultureIgnoreCase);
+                        if (compressed)
+                            tableName = Path.GetFileNameWithoutExtension(tableName);
+
+                        // add the prefix
+                        if (!String.IsNullOrEmpty(_sourceTableNamePrefix))
+                            tableName = $"{_sourceTableNamePrefix}{tableName}";
+
+                        // log
+                        _logger.LogInformation($"Restoring {blobName} to table {tableName} (Compressed: {compressed})");
+
+                        // open the read stream
+                        var blobClient = blobContainerClient.GetBlobClient(blob.Name);
+                        using (var readStream = await blobClient.OpenReadAsync())
+                        {
+                            // unzip the stream 
+                            using (var contentReader = new ZippedStreamReader(readStream, compressed))
+                            {
+                                // import the stream
+                                var pageCounter = 0;
+                                await storageContext.ImportFromJsonAsync(tableName, contentReader, (c) =>
+                                {
+                                    switch (c)
+                                    {
+                                        case ImportExportOperation.processingPage:
+                                            _logger.LogInformation($"  Processing page #{pageCounter}...");
+                                            break;
+                                        case ImportExportOperation.processedPage:
+                                            pageCounter++;
+                                            break;
+                                    }                                                                        
+                                });
+                            }
+                        }
+                    }
+                }              
+            }
+
+            await Task.CompletedTask;
         }
     }
 }
-
-/*
- * public async Task Restore(string containerName, string srcPath, string tablePrefix = null) {
-
-            // log 
-            storageLogger.LogInformation($"Starting restore procedure...");
-
-            // get all backup files 
-            var blobClient = backupStorageAccount.CreateCloudBlobClient();
-            var containerReference = blobClient.GetContainerReference(containerName.ToLower());
-
-            // check if the container exists
-            if (!await containerReference.ExistsAsync()) {
-                storageLogger.LogInformation($"Missing container {containerName.ToLower()}");
-                return;
-            }
-
-            // build the path including prefix 
-            storageLogger.LogInformation($"Search Prefix is {srcPath}");
-
-            // track the state
-            var continuationToken = default(BlobContinuationToken);
-
-            do
-            {
-                // get all blobs
-                var blobResult = await containerReference.ListBlobsSegmentedAsync(srcPath, true, BlobListingDetails.All, 1000, continuationToken, null, null);
-
-                // process every backup file as table 
-                foreach(var blob in blobResult.Results) {
-
-                    // build the name 
-                    var blobName = blob.StorageUri.PrimaryUri.AbsolutePath;
-                    blobName = blobName.Remove(0, containerName.Length + 2);
-
-                    // get the tablename 
-                    var tableName = Path.GetFileNameWithoutExtension(blobName);
-                    var compressed = blobName.EndsWith(".gz", StringComparison.CurrentCultureIgnoreCase);
-                    if (compressed)
-                        tableName = Path.GetFileNameWithoutExtension(tableName);
-
-                    // add the prefix
-                    if (!String.IsNullOrEmpty(tablePrefix))
-                        tableName = $"{tablePrefix}{tableName}";
-
-                    // log
-                    storageLogger.LogInformation($"Restoring {blobName} to table {tableName} (Compressed: {compressed})");
-
-                    // build the reference
-                    var blockBlobReference = containerReference.GetBlockBlobReference(blobName);
-
-                    // open the read stream 
-                    using (var readStream = await blockBlobReference.OpenReadAsync())
-                    {
-                        // unzip the stream 
-                        using (var contentReader = new ZippedStreamReader(readStream, compressed))
-                        {
-                            // import the stream
-                            var pageCounter = 0;
-                            await dataImportService.ImportFromJsonStreamAsync(tableName, contentReader, (c) => {
-                                pageCounter++;
-                                storageLogger.LogInformation($"  Processing page #{pageCounter} with #{c} items...");
-                            });
-                        }
-                    }
-                }
-
-                // proces the token 
-                continuationToken = blobResult.ContinuationToken;
-
-            } while (continuationToken != null);
-
-
-
-        }
-*/

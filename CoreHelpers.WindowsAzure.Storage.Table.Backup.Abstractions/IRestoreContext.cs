@@ -5,7 +5,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions
 {
     public interface IRestoreContext : IDisposable
     {
-        // Task BackupTable(IStorageContext storageContext, string tableName, bool compress = true);
+        Task Restore(IStorageContext storageContext, string[] excludedTables = null);
     }
 }
 

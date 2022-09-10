@@ -54,6 +54,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         void SetTableNamePrefix(string tableNamePrefix);
 
+        string GetTableNamePrefix();
+
         void OverrideTableName<T>(string table) where T : class, new();
 
         Task MergeOrInsertAsync<T>(IEnumerable<T> models) where T : class, new();

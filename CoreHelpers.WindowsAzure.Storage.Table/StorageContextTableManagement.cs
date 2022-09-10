@@ -27,6 +27,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             _tableNamePrefix = tableNamePrefix;
         }
 
+        public string GetTableNamePrefix()
+            => _tableNamePrefix;
+
         public void OverrideTableName<T>(string table) where T : class, new()
         {
             OverrideTableName(typeof(T), table);
