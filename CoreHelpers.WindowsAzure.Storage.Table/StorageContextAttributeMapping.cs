@@ -44,6 +44,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             }
         }
 
+        public void AddAttributeMapper<T>(String optionalTablenameOverride = null) where T : class
+        {
+            AddAttributeMapper(typeof(T), optionalTablenameOverride);
+        }
+
         public void AddAttributeMapper(Type type)
         {
             AddAttributeMapper(type, string.Empty);

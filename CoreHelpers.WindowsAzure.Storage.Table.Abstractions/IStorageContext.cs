@@ -21,6 +21,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         void AddAttributeMapper(Type type);
 
+        void AddAttributeMapper<T>(String optionalTablenameOverride = null) where T: class;
+
         void AddAttributeMapper(Type type, String optionalTablenameOverride);
 
         void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, String tableName);
