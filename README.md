@@ -127,6 +127,22 @@ public class VArrayModel
 }
 ```
 
+## Virtual Dictionary Attributes
+When storing dictionaries in Azure Table store there are two options. The first option is to store it as a JSON payload and the second option is to expand the dictionary with his items to separate properties in Azure Table Store with the following code: 
+
+```csharp
+[Storable(Tablename: "VDictionaryModels")]
+public class VDictionaryModel
+{
+  [PartitionKey]
+  [RowKey]
+  public string UUID { get; set; }
+
+  [VirtualDictionary(PropertyPrefix: "DE")]
+  public Dictionary<string, int> DataElements { get; set; } = new Dictionary<string, int>();
+}
+```
+
 ## Store as JSON Object Attribute
 The store as JSON attribute allows to store refenrenced objects as json payload for a specific property
  
