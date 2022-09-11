@@ -16,7 +16,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
         }
 
         [Fact]
-        public async Task CreateAndVerifyBackup()
+        public async Task VerifyPartialUpdate()
         {
             using (var scp = _rootContext.CreateChildContext())
             {
