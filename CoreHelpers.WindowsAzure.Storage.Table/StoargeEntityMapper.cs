@@ -1,4 +1,5 @@
 ﻿using System;
+using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -6,7 +7,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 	{
 		public String PartitionKeyFormat { get; set; }
 		public String RowKeyFormat { get; set; }
-		public String TableName { get; set; }
+        public nVirtualValueEncoding RowKeyEncoding { get; set; }
+        public String TableName { get; set; }
 
         public StorageEntityMapper() 
         {}
@@ -15,6 +17,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         {
             this.PartitionKeyFormat = src.PartitionKeyFormat;
             this.RowKeyFormat = src.RowKeyFormat;
+            this.RowKeyEncoding = src.RowKeyEncoding;
             this.TableName = src.TableName;
         }
 	}

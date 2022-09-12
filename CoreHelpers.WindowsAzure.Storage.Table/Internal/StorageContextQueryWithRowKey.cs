@@ -1,5 +1,4 @@
 ﻿using System;
-using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
 {

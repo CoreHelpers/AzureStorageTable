@@ -12,14 +12,22 @@ using HandlebarsDotNet;
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
     internal static class TableEntityDynamic
-    {        
+    {
+        public static TableEntity ToEntity<T>(T model, IStorageContext context) where T : new()
+        {
+            if (context as StorageContext == null)
+                throw new Exception("Invalid interface implemnetation");
+            else                
+                return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>());
+        }
+
         public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T: new()
         {
             var builder = new TableEntityBuilder();
 
             // set the keys
             builder.AddPartitionKey(GetTableStorageDefaultProperty<string, T>(entityMapper.PartitionKeyFormat, model));
-            builder.AddRowKey(GetTableStorageDefaultProperty<string, T>(entityMapper.RowKeyFormat, model));
+            builder.AddRowKey(GetTableStorageDefaultProperty<string, T>(entityMapper.RowKeyFormat, model), entityMapper.RowKeyEncoding);
 
             // get all properties from model 
             IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();

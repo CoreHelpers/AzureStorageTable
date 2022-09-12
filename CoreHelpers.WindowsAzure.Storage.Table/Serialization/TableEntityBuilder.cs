@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Azure.Data.Tables;
+using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
+using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
@@ -15,9 +17,22 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             return this;
         }
 
-        public TableEntityBuilder AddRowKey(string rkey)
+        public TableEntityBuilder AddRowKey(string rkey, nVirtualValueEncoding encoding = nVirtualValueEncoding.None)
         {
-            _data.Add("RowKey", rkey);
+
+            switch (encoding)
+            {
+                case nVirtualValueEncoding.None:
+                    _data.Add("RowKey", rkey);
+                    break;
+                case nVirtualValueEncoding.Base64:
+                    _data.Add("RowKey", rkey.ToBase64());
+                    break;
+                case nVirtualValueEncoding.Sha256:
+                    _data.Add("RowKey", rkey.ToSha256());
+                    break;
+            }
+            
             return this;
         }
 

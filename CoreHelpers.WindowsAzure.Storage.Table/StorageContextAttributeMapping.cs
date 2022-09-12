@@ -15,10 +15,16 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         public void AddEntityMapper(Type entityType, string partitionKeyFormat, string rowKeyFormat, string tableName)
         {
+            AddEntityMapper(entityType, partitionKeyFormat, rowKeyFormat, nVirtualValueEncoding.None, tableName);
+        }
+
+        public void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, nVirtualValueEncoding rowKeyEncoding, String tableName)
+        {
             _entityMapperRegistry.Add(entityType, new StorageEntityMapper()
             {
                 PartitionKeyFormat = partitionKeyFormat,
                 RowKeyFormat = rowKeyFormat,
+                RowKeyEncoding = rowKeyEncoding,
                 TableName = tableName
             });
         }
@@ -66,6 +72,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             // store the neded properties
             string partitionKeyFormat = null;
             string rowKeyFormat = null;
+            var rowKeyEncoding = nVirtualValueEncoding.None;
 
             // get the partitionkey property & rowkey property
             var properties = type.GetRuntimeProperties();
@@ -91,6 +98,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             if (virtualRowKeyAttribute != null && !String.IsNullOrEmpty(virtualRowKeyAttribute.RowKeyFormat))
                 rowKeyFormat = virtualRowKeyAttribute.RowKeyFormat;
 
+            if (virtualRowKeyAttribute != null && virtualRowKeyAttribute.Encoding != nVirtualValueEncoding.None)
+                rowKeyEncoding = virtualRowKeyAttribute.Encoding;
+
             // check 
             if (partitionKeyFormat == null || rowKeyFormat == null)
                 throw new Exception("Missing Partition or RowKey Attribute");
@@ -100,7 +110,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
             {
                 TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? storableAttribute.Tablename : optionalTablenameOverride,
                 PartitionKeyFormat = partitionKeyFormat,
-                RowKeyFormat = rowKeyFormat
+                RowKeyFormat = rowKeyFormat,
+                RowKeyEncoding = rowKeyEncoding
             });
         }
 

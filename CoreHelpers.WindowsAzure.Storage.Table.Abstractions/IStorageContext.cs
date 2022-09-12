@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table
 {
@@ -26,6 +25,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         void AddAttributeMapper(Type type, String optionalTablenameOverride);
 
         void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, String tableName);
+
+        void AddEntityMapper(Type entityType, String partitionKeyFormat, String rowKeyFormat, nVirtualValueEncoding rowKeyEncoding, String tableName);
 
         IStorageContext CreateChildContext();
 

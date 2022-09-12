@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CoreHelpers.WindowsAzure.Storage.Table.Abstractions
+namespace CoreHelpers.WindowsAzure.Storage.Table
 {
     public interface IStorageContextQueryNow<T>
     {

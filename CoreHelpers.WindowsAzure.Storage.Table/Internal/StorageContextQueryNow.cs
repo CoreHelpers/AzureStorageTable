@@ -7,7 +7,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
-using CoreHelpers.WindowsAzure.Storage.Table.Abstractions;
 using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Internal

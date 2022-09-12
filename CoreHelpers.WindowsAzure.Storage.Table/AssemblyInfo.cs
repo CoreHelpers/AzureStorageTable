@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 [assembly: AssemblyCompany("Core Helpers")]
 [assembly: AssemblyProduct("WindowsAzure.Storage.Table")]
@@ -13,3 +14,5 @@ using System.Reflection;
 #else
 [assembly: AssemblyConfiguration("Release")]
 #endif
+
+[assembly: InternalsVisibleTo("CoreHelpers.WindowsAzure.Storage.Table.Tests")]
