@@ -95,7 +95,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
                 }
 
                 // set the item
-                Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, _context.context.GetEntityMapper<T>());
+                Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, _context.context.GetEntityMapper<T>(), _context.context);
 
                 // done
                 return true;

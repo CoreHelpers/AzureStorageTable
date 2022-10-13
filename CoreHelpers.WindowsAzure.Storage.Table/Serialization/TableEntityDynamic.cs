@@ -51,7 +51,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             return builder.Build();
         }
 
-        public static T fromEntity<T>(TableEntity entity, StorageEntityMapper entityMapper) where T : class, new()
+        public static T fromEntity<T>(TableEntity entity, StorageEntityMapper entityMapper, IStorageContext context) where T : class, new()
         {
             // create the target model
             var model = new T();
