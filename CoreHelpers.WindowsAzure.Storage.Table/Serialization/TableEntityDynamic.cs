@@ -16,12 +16,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
         public static TableEntity ToEntity<T>(T model, IStorageContext context) where T : new()
         {
             if (context as StorageContext == null)
-                throw new Exception("Invalid interface implemnetation");
+                throw new Exception("Invalid interface implementation");
             else                
-                return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>());
+                return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>(), context);
         }
 
-        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T: new()
+        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T: new()
         {
             var builder = new TableEntityBuilder();
 
