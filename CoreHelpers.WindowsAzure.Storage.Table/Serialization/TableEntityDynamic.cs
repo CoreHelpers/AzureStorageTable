@@ -8,7 +8,6 @@ using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using HandlebarsDotNet;
-using Newtonsoft.Json.Linq;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
