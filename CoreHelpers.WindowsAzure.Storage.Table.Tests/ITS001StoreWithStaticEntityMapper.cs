@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Delegates;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;
@@ -63,6 +64,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 					// ensure we are empty
                     var resultEmpty = await scp.QueryAsync<UserModel>();
+					foreach (var i in resultEmpty)
+                    {
+						Debug.WriteLine(i.FirstName);
+                    }
 					Assert.Empty(resultEmpty);
 
                     // inser the model

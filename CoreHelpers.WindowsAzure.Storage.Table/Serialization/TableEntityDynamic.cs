@@ -46,8 +46,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.WriteProperty<T>(property, model, builder);
-                else if (relatedTableAttribute != null)
-                    continue;
+                //else if (relatedTableAttribute != null)
+                    //continue;
                 else
                     builder.AddProperty(property.Name, property.GetValue(model, null));
             }
@@ -78,8 +78,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.ReadProperty<T>(entity, property, model);
-                else if (relatedTableAttribute != null)
-                    property.SetValue(model, LoadRelatedTableProperty(context, model, objectProperties, property));
+                //else if (relatedTableAttribute != null)
+                //    property.SetValue(model, LoadRelatedTableProperty(context, model, objectProperties, property));
                 else
                 {
                     if (!entity.ContainsKey(property.Name))
