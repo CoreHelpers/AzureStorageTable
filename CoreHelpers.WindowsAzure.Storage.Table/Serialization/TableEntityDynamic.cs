@@ -8,6 +8,7 @@ using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
 using CoreHelpers.WindowsAzure.Storage.Table.Internal;
 using HandlebarsDotNet;
+using Newtonsoft.Json.Linq;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 {
@@ -17,11 +18,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
         {
             if (context as StorageContext == null)
                 throw new Exception("Invalid interface implementation");
-            else                
+            else
                 return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>(), context);
         }
 
-        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T: new()
+        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T : new()
         {
             var builder = new TableEntityBuilder();
 
@@ -41,12 +42,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 // check if we have a special convert attached via attribute if so generate the required target 
                 // properties with the correct converter
                 var virtualTypeAttribute = property.GetCustomAttributes().Where(a => a is IVirtualTypeAttribute).Select(a => a as IVirtualTypeAttribute).FirstOrDefault<IVirtualTypeAttribute>();
+
+                var relatedTableAttribute = property.GetCustomAttributes().Where(a => a is RelatedTableAttribute).Select(a => a as RelatedTableAttribute).FirstOrDefault<RelatedTableAttribute>();
+
                 if (virtualTypeAttribute != null)
-                    virtualTypeAttribute.WriteProperty<T>(property, model, builder);                                                   
+                    virtualTypeAttribute.WriteProperty<T>(property, model, builder);
+                else if (relatedTableAttribute != null)
+                    continue;
                 else
-                    builder.AddProperty(property.Name, property.GetValue(model, null));                                                       
+                    builder.AddProperty(property.Name, property.GetValue(model, null));
             }
-                
+
             // build the result 
             return builder.Build();
         }
@@ -58,18 +64,23 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
             // get all properties from model 
             IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();
-            
+
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
             {
                 if (ShouldSkipProperty(property))
                     continue;
-               
+
                 // check if we have a special convert attached via attribute if so generate the required target 
                 // properties with the correct converter
                 var virtualTypeAttribute = property.GetCustomAttributes().Where(a => a is IVirtualTypeAttribute).Select(a => a as IVirtualTypeAttribute).FirstOrDefault<IVirtualTypeAttribute>();
+
+                var relatedTableAttribute = property.GetCustomAttributes().Where(a => a is RelatedTableAttribute).Select(a => a as RelatedTableAttribute).FirstOrDefault<RelatedTableAttribute>();
+
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.ReadProperty<T>(entity, property, model);
+                else if (relatedTableAttribute != null)
+                    property.SetValue(model, LoadRelatedTableProperty(context, model, objectProperties, property));
                 else
                 {
                     if (!entity.ContainsKey(property.Name))
@@ -80,7 +91,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                     if (!entity.TryGetValue(property.Name, out objectValue))
                         continue;
 
-                    if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?) )
+                    if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?))
                         property.SetDateTimeOffsetValue(model, objectValue);
                     else
                         property.SetValue(model, objectValue);
@@ -88,6 +99,68 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             }
 
             return model;
+        }
+
+        private static object LoadRelatedTableProperty<T>(IStorageContext context, T model, IEnumerable<PropertyInfo> objectProperties, PropertyInfo property) where T : class, new()
+        {
+            var relatedTable = property.GetCustomAttribute<RelatedTableAttribute>();
+            var isLazy = false;
+            var isEnumerable = false;
+
+
+            Type endType;
+            if (property.PropertyType.IsDerivedFromGenericParent(typeof(Lazy<>)))
+            {
+                endType = property.PropertyType.GetTypeInfo().GenericTypeArguments[0];
+                isLazy = true;
+            }
+            else
+                endType = property.PropertyType;
+
+            if (endType.IsDerivedFromGenericParent(typeof(IEnumerable<>)))
+                isEnumerable = true;
+
+            // determine the partition key
+            string extPartition = relatedTable.PartitionKey;
+            if (!string.IsNullOrWhiteSpace(extPartition))
+            {
+                // if the partition key is the name of a property on the model, get the value
+                var partitionProperty = objectProperties.Where((pi) => pi.Name == relatedTable.PartitionKey).FirstOrDefault();
+                if (partitionProperty != null)
+                    extPartition = partitionProperty.GetValue(model).ToString();
+            }
+
+            string extRowKey = relatedTable.RowKey ?? endType.Name;
+            // if the row key is the name of a property on the model, get the value
+            var rowkeyProperty = objectProperties.Where((pi) => pi.Name == extRowKey).FirstOrDefault();
+            if (rowkeyProperty != null)
+                extRowKey = rowkeyProperty.GetValue(model).ToString();
+
+            var method = typeof(StorageContext).GetMethod(nameof(StorageContext.QueryAsync),
+                isEnumerable ?
+                    new[] { typeof(string), typeof(int) } :
+                    new[] { typeof(string), typeof(string), typeof(int) });
+            var generic = method.MakeGenericMethod(endType);
+
+            // if the property is a lazy type, create the lazy initialization
+            if (isLazy)
+            {
+                var lazyType = typeof(DynamicLazy<>);
+                var constructed = lazyType.MakeGenericType(endType);
+
+                object o = Activator.CreateInstance(constructed, new Func<object>(() =>
+                {
+                    var waitable = (dynamic)generic.Invoke(context, new object[] { extPartition, extRowKey, 1 });
+                    return waitable.Result;
+                }));
+                return o;
+
+            }
+            else
+            {
+                var waitable = (dynamic)generic.Invoke(context, new object[] { extPartition, extRowKey, 1 });
+                return waitable.Result;
+            }
         }
 
         private static S GetTableStorageDefaultProperty<S, T>(string format, T model) where S : class
