@@ -22,7 +22,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>(), context);
         }
 
-        public static async TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T : new()
+        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T : new()
         {
             var builder = new TableEntityBuilder();
 
@@ -49,7 +49,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                     virtualTypeAttribute.WriteProperty<T>(property, model, builder);
                 else if (relatedTableAttribute != null && relatedTableAttribute.AutoSave)
                     // TODO: Implicit save rowkey and partitionkey (will need to get from saved model)
-                    await SaveRelatedTable(context, property.GetValue(model, null), property);
+                    SaveRelatedTable(context, property.GetValue(model, null), property).Wait();
                 else
                     builder.AddProperty(property.Name, property.GetValue(model, null));
             }
