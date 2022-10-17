@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Azure.Data.Tables;
 using CoreHelpers.WindowsAzure.Storage.Table.Attributes;
 using CoreHelpers.WindowsAzure.Storage.Table.Extensions;
@@ -21,7 +22,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>(), context);
         }
 
-        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T : new()
+        public static async TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper, IStorageContext context) where T : new()
         {
             var builder = new TableEntityBuilder();
 
@@ -46,14 +47,42 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.WriteProperty<T>(property, model, builder);
-                //else if (relatedTableAttribute != null)
-                    //continue;
+                else if (relatedTableAttribute != null && relatedTableAttribute.)
+                    // TODO: Implicit save rowkey and partitionkey (will need to get from saved model)
+                    await SaveRelatedTable(context, property.GetValue(model, null), property);
                 else
                     builder.AddProperty(property.Name, property.GetValue(model, null));
             }
 
             // build the result 
             return builder.Build();
+        }
+
+        private static async Task SaveRelatedTable(IStorageContext context, object o, PropertyInfo property)
+        {
+            Type endType;
+            if (property.PropertyType.IsDerivedFromGenericParent(typeof(Lazy<>)))
+            {
+                endType = property.PropertyType.GetTypeInfo().GenericTypeArguments[0];
+                var lazy = (Lazy<object>)o;
+                if (!lazy.IsValueCreated)
+                    return; //if the value is not created we should not load it just to store it.
+                o = lazy.Value;
+            }
+            else
+                endType = property.PropertyType;
+
+            var enumerableType = endType;
+            if (endType.IsDerivedFromGenericParent(typeof(IEnumerable<>)))
+                endType = endType.GetTypeInfo().GenericTypeArguments[0];
+            else
+                enumerableType = typeof(IEnumerable<>).MakeGenericType(endType);
+
+            var method = typeof(StorageContext).GetMethod(nameof(StorageContext.StoreAsync),
+                        new[] { typeof(nStoreOperation), enumerableType });
+            var generic = method.MakeGenericMethod(endType);
+            var waitable = (Task)generic.Invoke(context, new object[] { nStoreOperation.insertOrReplaceOperation, o });
+            await waitable;
         }
 
         public static T fromEntity<T>(TableEntity entity, StorageEntityMapper entityMapper, IStorageContext context) where T : class, new()
@@ -78,8 +107,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.ReadProperty<T>(entity, property, model);
-                //else if (relatedTableAttribute != null)
-                //    property.SetValue(model, LoadRelatedTableProperty(context, model, objectProperties, property));
+                else if (relatedTableAttribute != null)
+                    property.SetValue(model, LoadRelatedTableProperty(context, model, objectProperties, property, relatedTableAttribute));
                 else
                 {
                     if (!entity.ContainsKey(property.Name))
@@ -100,9 +129,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             return model;
         }
 
-        private static object LoadRelatedTableProperty<T>(IStorageContext context, T model, IEnumerable<PropertyInfo> objectProperties, PropertyInfo property) where T : class, new()
+
+        private static object LoadRelatedTableProperty<T>(IStorageContext context, T model, IEnumerable<PropertyInfo> objectProperties, PropertyInfo property, RelatedTableAttribute relatedTableAttribute) where T : class, new()
         {
-            var relatedTable = property.GetCustomAttribute<RelatedTableAttribute>();
             var isLazy = false;
             var isEnumerable = false;
 
@@ -120,16 +149,16 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 isEnumerable = true;
 
             // determine the partition key
-            string extPartition = relatedTable.PartitionKey;
+            string extPartition = relatedTableAttribute.PartitionKey;
             if (!string.IsNullOrWhiteSpace(extPartition))
             {
                 // if the partition key is the name of a property on the model, get the value
-                var partitionProperty = objectProperties.Where((pi) => pi.Name == relatedTable.PartitionKey).FirstOrDefault();
+                var partitionProperty = objectProperties.Where((pi) => pi.Name == relatedTableAttribute.PartitionKey).FirstOrDefault();
                 if (partitionProperty != null)
                     extPartition = partitionProperty.GetValue(model).ToString();
             }
 
-            string extRowKey = relatedTable.RowKey ?? endType.Name;
+            string extRowKey = relatedTableAttribute.RowKey ?? endType.Name;
             // if the row key is the name of a property on the model, get the value
             var rowkeyProperty = objectProperties.Where((pi) => pi.Name == extRowKey).FirstOrDefault();
             if (rowkeyProperty != null)

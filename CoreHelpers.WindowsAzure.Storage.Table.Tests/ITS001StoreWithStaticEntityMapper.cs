@@ -64,10 +64,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
 					// ensure we are empty
                     var resultEmpty = await scp.QueryAsync<UserModel>();
-					foreach (var i in resultEmpty)
-                    {
-						Debug.WriteLine(i.FirstName);
-                    }
 					Assert.Empty(resultEmpty);
 
                     // inser the model
