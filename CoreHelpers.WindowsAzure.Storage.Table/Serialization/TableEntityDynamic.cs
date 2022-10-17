@@ -47,7 +47,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                 if (virtualTypeAttribute != null)
                     virtualTypeAttribute.WriteProperty<T>(property, model, builder);
-                else if (relatedTableAttribute != null && relatedTableAttribute.)
+                else if (relatedTableAttribute != null && relatedTableAttribute.AutoSave)
                     // TODO: Implicit save rowkey and partitionkey (will need to get from saved model)
                     await SaveRelatedTable(context, property.GetValue(model, null), property);
                 else
