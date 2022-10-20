@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -145,7 +145,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
             var filter = string.IsNullOrWhiteSpace(_context.filter) ? null : _context.filter;
             // start the query
             _pageEnumerator = tc.Query<TableEntity>(filter, maxPerPage, _context.select, _context.cancellationToken).AsPages().GetEnumerator();
-            
         }
     }
 

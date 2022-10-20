@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +53,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                     SaveRelatedTable(context, property.GetValue(model, null), property).Wait();
                 else if (relatedTableAttribute != null)
                     continue;
+                else if (property.PropertyType.IsEnum)
+                    builder.AddProperty(property.Name, property.GetValue(model, null).ToString());
                 else
                     builder.AddProperty(property.Name, property.GetValue(model, null));
             }
@@ -134,6 +136,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
                     if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?))
                         property.SetDateTimeOffsetValue(model, objectValue);
+                    else if (property.PropertyType.IsEnum && int.TryParse(objectValue.ToString(), out var intEnum) && property.PropertyType.IsEnumDefined(intEnum))
+                        property.SetValue(model, Enum.ToObject(property.PropertyType, intEnum));
+                    else if (property.PropertyType.IsEnum && property.PropertyType.IsEnumDefined(objectValue.ToString()))
+                        property.SetValue(model, Enum.Parse(property.PropertyType, objectValue.ToString()));
                     else
                         property.SetValue(model, objectValue);
                 }
