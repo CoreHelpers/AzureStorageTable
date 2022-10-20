@@ -18,6 +18,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
         /// </summary>
         public bool AutoSave { get; set; }
 
+        //TODO:
+        //public bool AutoDelete { get; set; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -25,7 +28,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
         public RelatedTableAttribute(string partitionKey)
         {
             PartitionKey = partitionKey;
-            AutoSave = false;
         }
 
         /// <summary>
@@ -37,7 +39,6 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Attributes
         {
             PartitionKey = partitionKey;
             RowKey = rowKey;
-            AutoSave = false;
         }
 
         /// <summary>

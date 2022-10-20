@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -50,6 +51,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 else if (relatedTableAttribute != null && relatedTableAttribute.AutoSave)
                     // TODO: Implicit save rowkey and partitionkey (will need to get from saved model)
                     SaveRelatedTable(context, property.GetValue(model, null), property).Wait();
+                else if (relatedTableAttribute != null)
+                    continue;
                 else
                     builder.AddProperty(property.Name, property.GetValue(model, null));
             }
@@ -60,6 +63,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
         private static async Task SaveRelatedTable(IStorageContext context, object o, PropertyInfo property)
         {
+            if (o == null)
+                return;
+
             Type endType;
             if (property.PropertyType.IsDerivedFromGenericParent(typeof(Lazy<>)))
             {
@@ -76,10 +82,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             if (endType.IsDerivedFromGenericParent(typeof(IEnumerable<>)))
                 endType = endType.GetTypeInfo().GenericTypeArguments[0];
             else
+            {
                 enumerableType = typeof(IEnumerable<>).MakeGenericType(endType);
+                Type listType = typeof(List<>).MakeGenericType(new[] { endType });
+                IList list = (IList)Activator.CreateInstance(listType);
+                list.Add(o);
+                o = list;
+            }
 
-            var method = typeof(StorageContext).GetMethod(nameof(StorageContext.StoreAsync),
-                        new[] { typeof(nStoreOperation), enumerableType });
+            var method = typeof(StorageContext)
+              .GetMethods()
+              .Single(m => m.Name == nameof(StorageContext.StoreAsync) && m.IsGenericMethodDefinition);
             var generic = method.MakeGenericMethod(endType);
             var waitable = (Task)generic.Invoke(context, new object[] { nStoreOperation.insertOrReplaceOperation, o });
             await waitable;
