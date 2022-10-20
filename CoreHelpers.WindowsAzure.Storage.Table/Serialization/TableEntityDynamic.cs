@@ -17,11 +17,11 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
         {
             if (context as StorageContext == null)
                 throw new Exception("Invalid interface implemnetation");
-            else                
+            else
                 return TableEntityDynamic.ToEntity<T>(model, (context as StorageContext).GetEntityMapper<T>());
         }
 
-        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T: new()
+        public static TableEntity ToEntity<T>(T model, StorageEntityMapper entityMapper) where T : new()
         {
             var builder = new TableEntityBuilder();
 
@@ -42,11 +42,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                 // properties with the correct converter
                 var virtualTypeAttribute = property.GetCustomAttributes().Where(a => a is IVirtualTypeAttribute).Select(a => a as IVirtualTypeAttribute).FirstOrDefault<IVirtualTypeAttribute>();
                 if (virtualTypeAttribute != null)
-                    virtualTypeAttribute.WriteProperty<T>(property, model, builder);                                                   
+                    virtualTypeAttribute.WriteProperty<T>(property, model, builder);
+                else if (property.PropertyType.IsEnum)
+                    builder.AddProperty(property.Name, property.GetValue(model, null).ToString());
                 else
-                    builder.AddProperty(property.Name, property.GetValue(model, null));                                                       
+                    builder.AddProperty(property.Name, property.GetValue(model, null));
             }
-                
+
             // build the result 
             return builder.Build();
         }
@@ -58,13 +60,13 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
 
             // get all properties from model 
             IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();
-            
+
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
             {
                 if (ShouldSkipProperty(property))
                     continue;
-               
+
                 // check if we have a special convert attached via attribute if so generate the required target 
                 // properties with the correct converter
                 var virtualTypeAttribute = property.GetCustomAttributes().Where(a => a is IVirtualTypeAttribute).Select(a => a as IVirtualTypeAttribute).FirstOrDefault<IVirtualTypeAttribute>();
@@ -80,8 +82,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
                     if (!entity.TryGetValue(property.Name, out objectValue))
                         continue;
 
-                    if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?) )
+                    if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?) || property.PropertyType == typeof(DateTimeOffset) || property.PropertyType == typeof(DateTimeOffset?))
                         property.SetDateTimeOffsetValue(model, objectValue);
+                    else if (property.PropertyType.IsEnum && int.TryParse(objectValue.ToString(), out var intEnum) && property.PropertyType.IsEnumDefined(intEnum))
+                        property.SetValue(model, Enum.ToObject(property.PropertyType, intEnum));
+                    else if (property.PropertyType.IsEnum && property.PropertyType.IsEnumDefined(objectValue.ToString()))
+                        property.SetValue(model, Enum.Parse(property.PropertyType, objectValue.ToString()));
                     else
                         property.SetValue(model, objectValue);
                 }
