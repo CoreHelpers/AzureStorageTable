@@ -81,5 +81,58 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DropTableAsync<DemoEntityQuery>();
             }
         }
+
+        [Fact]
+        public async Task VerifyQueryfilterBoolOnly()
+        {
+            // Import from Blob            
+            using (var storageContext = new StorageContext(env.ConnectionString))
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                // create the model 
+                var models = new List<DemoEntityQuery>()
+                {
+                    new DemoEntityQuery() {R = "E6", StringField = "Demo03"},
+                    new DemoEntityQuery() {R = "E7", StringField = "Demo03", BoolField = true},
+                    new DemoEntityQuery() {R = "E8", StringField = "Demo03", BoolField = false}
+                };
+
+                // ensure we are using the attributes                
+                storageContext.AddAttributeMapper(typeof(DemoEntityQuery));
+
+                // inser the model                
+                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoEntityQuery>(models);
+
+                // build the basic filter
+                var filterItem = new QueryFilter()
+                {
+                    FilterType = QueryFilterType.And,
+                    Property = nameof(DemoEntityQuery.BoolField),
+                    Value = true,
+                    Operator = QueryFilterOperator.Equal
+                };
+
+                // query all elements with empty filter list
+                var result = (await storageContext.QueryAsync<DemoEntityQuery>(null, new List<QueryFilter>())).ToList();
+                Assert.Equal(3, result.Count());
+
+                // query all false elements
+                filterItem.Value = false;
+                result = (await storageContext.QueryAsync<DemoEntityQuery>("P1", new List<QueryFilter>() { filterItem })).ToList();
+                Assert.Equal(2, result.Count());
+
+                // query all true elements
+                filterItem.Value = true;
+                result = (await storageContext.QueryAsync<DemoEntityQuery>("P1", new List<QueryFilter>() { filterItem })).ToList();
+                Assert.Single(result);
+
+                // Clean up                 
+                var all = await storageContext.QueryAsync<DemoEntityQuery>();
+                await storageContext.DeleteAsync<DemoEntityQuery>(all);
+                await storageContext.DropTableAsync<DemoEntityQuery>();
+            }
+        }
     }
 }
