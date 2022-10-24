@@ -62,6 +62,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
             {
+                if (property.Name == entityMapper.PartitionKeyFormat)
+                    property.SetValue(model, entity.PartitionKey);
+
+                if (property.Name == entityMapper.RowKeyFormat)
+                    property.SetValue(model, entity.RowKey);
+
                 if (ShouldSkipProperty(property))
                     continue;
                
