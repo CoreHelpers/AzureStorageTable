@@ -56,16 +56,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             // create the target model
             var model = new T();
 
+
             // get all properties from model 
             IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();
             
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
             {
-                if (property.Name == entityMapper.PartitionKeyFormat)
+                if (property.Name == entityMapper.PartitionKeyFormat && property.SetMethod != null)
                     property.SetValue(model, entity.PartitionKey);
 
-                if (property.Name == entityMapper.RowKeyFormat)
+                if (property.Name == entityMapper.RowKeyFormat && property.SetMethod != null)
                     property.SetValue(model, entity.RowKey);
 
                 if (ShouldSkipProperty(property))
