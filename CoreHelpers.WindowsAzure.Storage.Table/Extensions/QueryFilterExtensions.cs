@@ -24,6 +24,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
                 bool b => b.ToString().ToLower(),
                 byte[] bytes => $"binary'{Convert.ToBase64String(bytes)}'",
                 DateTimeOffset offset => $"datetime'{offset.ToUniversalTime():s}Z'",
+                DateTime offset => $"datetime'{offset.ToUniversalTime():s}Z'",
                 double d => d.ToString(CultureInfo.InvariantCulture),
                 Guid guid => $"guid'{guid}'",
                 int i => i.ToString(),

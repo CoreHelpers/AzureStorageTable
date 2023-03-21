@@ -13,6 +13,10 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
         public string StringField { get; set; } = String.Empty;
 
         public bool BoolField { get; set; }
+
+        public DateTime? DateTimeField { get; set; }
+
+        public long LongField { get; set; }
     }
 }
 
