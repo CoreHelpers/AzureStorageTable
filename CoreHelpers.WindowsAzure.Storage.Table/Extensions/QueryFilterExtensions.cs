@@ -1,55 +1,36 @@
 ﻿using System;
-using CoreHelpers.WindowsAzure.Storage.Table.Serialization;
+using System.Globalization;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 {
     public static class QueryFilterExtensions
-    {        
+    {
         public static string ToFilterString(this QueryFilter filter)
         {
-            var filterOperation = "eq";
-            switch (filter.Operator)
+            var filterOperation = filter.Operator switch
             {
-                case QueryFilterOperator.Equal:
-                    filterOperation = "eq";
-                    break;
-                case QueryFilterOperator.NotEqual:
-                    filterOperation = "ne";
-                    break;
-                case QueryFilterOperator.Lower:
-                    filterOperation = "lt";
-                    break;
-                case QueryFilterOperator.Greater:
-                    filterOperation = "gt";
-                    break;
-                case QueryFilterOperator.LowerEqual:
-                    filterOperation = "le";
-                    break;
-                case QueryFilterOperator.GreaterEqual:
-                    filterOperation = "ge";
-                    break;
-            }
+                QueryFilterOperator.Equal => "eq",
+                QueryFilterOperator.NotEqual => "ne",
+                QueryFilterOperator.Lower => "lt",
+                QueryFilterOperator.Greater => "gt",
+                QueryFilterOperator.LowerEqual => "le",
+                QueryFilterOperator.GreaterEqual => "ge",
+                _ => "eq"
+            };
 
-            var filterValueString = default(string);
-
-            if (filter.Value is string)
-                filterValueString = $"'{(string)filter.Value}'";
-            else if (filter.Value is bool)
-                filterValueString = ((bool)filter.Value) ? "true" : "false";
-            else if (filter.Value is byte[])
-                filterValueString = Convert.ToString((byte[]) filter.Value);            
-            else if (filter.Value is DateTimeOffset)
-                filterValueString = Convert.ToString((DateTimeOffset) filter.Value);
-            else if (filter.Value is double)
-                filterValueString = Convert.ToString((double) filter.Value);
-            else if (filter.Value is Guid)
-                filterValueString = ((Guid) filter.Value).ToString();
-            else if (filter.Value is int)
-                filterValueString = Convert.ToString((int) filter.Value);
-            else if (filter.Value is long)
-                filterValueString = Convert.ToString((long) filter.Value);
-            else
-                throw new NotSupportedException($"QueryFilter of Type \"{filter.Value?.GetType().FullName}\" is not supported.");
+            var filterValueString = filter.Value switch
+            {
+                string value => $"'{value}'",
+                bool b => b.ToString().ToLower(),
+                byte[] bytes => $"binary'{Convert.ToBase64String(bytes)}'",
+                DateTimeOffset offset => $"datetime'{offset.ToUniversalTime():s}Z'",
+                double d => d.ToString(CultureInfo.InvariantCulture),
+                Guid guid => $"guid'{guid}'",
+                int i => i.ToString(),
+                long l => $"{l}L",
+                _ => throw new NotSupportedException(
+                    $"QueryFilter of Type \"{filter.Value?.GetType().FullName}\" is not supported.")
+            };
 
             return $"{filter.Property} {filterOperation} {filterValueString}";
         }
