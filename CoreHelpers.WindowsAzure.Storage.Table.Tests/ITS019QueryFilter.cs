@@ -134,5 +134,101 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 await storageContext.DropTableAsync<DemoEntityQuery>();
             }
         }
+
+        [Fact]
+        public async Task VerifyQueryfilterLongOnly()
+        {
+            // Import from Blob            
+            using (var storageContext = new StorageContext(env.ConnectionString))
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                var l = 2910892817298;
+                
+                // create the model 
+                var models = new List<DemoEntityQuery>()
+                {
+                    new DemoEntityQuery() {R = "E6", StringField = "Demo03"},
+                    new DemoEntityQuery() {R = "E7", StringField = "Demo03", LongField = l - 1},
+                    new DemoEntityQuery() {R = "E8", StringField = "Demo03", LongField = l + 1}
+                };
+
+                // ensure we are using the attributes                
+                storageContext.AddAttributeMapper(typeof(DemoEntityQuery));
+
+                // inser the model                
+                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoEntityQuery>(models);
+
+                // build the basic filter
+                var filterItem = new QueryFilter()
+                {
+                    FilterType = QueryFilterType.And,
+                    Property = nameof(DemoEntityQuery.LongField),
+                    Value = l,
+                    Operator = QueryFilterOperator.GreaterEqual
+                };
+
+                // query all elements with empty filter list
+                var result = (await storageContext.QueryAsync<DemoEntityQuery>(null, new List<QueryFilter>())).ToList();
+                Assert.Equal(3, result.Count());
+
+                result = (await storageContext.QueryAsync<DemoEntityQuery>("P1", new List<QueryFilter>() { filterItem })).ToList();
+                Assert.Single(result, i => i?.LongField == l + 1);
+
+                // Clean up                 
+                var all = await storageContext.QueryAsync<DemoEntityQuery>();
+                await storageContext.DeleteAsync<DemoEntityQuery>(all);
+                await storageContext.DropTableAsync<DemoEntityQuery>();
+            }
+        }
+
+        [Fact]
+        public async Task VerifyQueryfilterDateTimeOnly()
+        {
+            // Import from Blob            
+            using (var storageContext = new StorageContext(env.ConnectionString))
+            {
+                // set the tablename context
+                storageContext.SetTableContext();
+
+                var now = DateTime.UtcNow;
+                
+                // create the model 
+                var models = new List<DemoEntityQuery>()
+                {
+                    new DemoEntityQuery() {R = "E6", StringField = "Demo03"},
+                    new DemoEntityQuery() {R = "E7", StringField = "Demo03", DateTimeField = now.AddDays(-1)},
+                    new DemoEntityQuery() {R = "E8", StringField = "Demo03", DateTimeField = now.AddDays(1)}
+                };
+
+                // ensure we are using the attributes                
+                storageContext.AddAttributeMapper(typeof(DemoEntityQuery));
+
+                // inser the model                
+                await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoEntityQuery>(models);
+
+                // build the basic filter
+                var filterItem = new QueryFilter()
+                {
+                    FilterType = QueryFilterType.And,
+                    Property = nameof(DemoEntityQuery.DateTimeField),
+                    Value = now,
+                    Operator = QueryFilterOperator.GreaterEqual
+                };
+
+                // query all elements with empty filter list
+                var result = (await storageContext.QueryAsync<DemoEntityQuery>(null, new List<QueryFilter>())).ToList();
+                Assert.Equal(3, result.Count());
+
+                result = (await storageContext.QueryAsync<DemoEntityQuery>("P1", new List<QueryFilter>() { filterItem })).ToList();
+                Assert.Single(result, i => i?.DateTimeField == now.AddDays(1));
+
+                // Clean up                 
+                var all = await storageContext.QueryAsync<DemoEntityQuery>();
+                await storageContext.DeleteAsync<DemoEntityQuery>(all);
+                await storageContext.DropTableAsync<DemoEntityQuery>();
+            }
+        }
     }
 }
