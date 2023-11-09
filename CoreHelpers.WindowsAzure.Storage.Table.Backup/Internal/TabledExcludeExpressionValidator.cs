@@ -7,7 +7,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup.Internal;
 internal class TabledExcludeExpressionValidator
 {
     private List<string> _excludes = new List<string>();
-    public TabledExcludeExpressionValidator(string[]? excludes)
+    public TabledExcludeExpressionValidator(string[] excludes)
     {
         if (excludes != null)
             _excludes = excludes.Select(e => e.ToLower()).ToList();
