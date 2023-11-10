@@ -123,6 +123,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                             if ((ExportEdmType)property.PropertyType == ExportEdmType.String && property.PropertyValue is DateTime)
                             {
                                 property.PropertyValue = ((DateTime)property.PropertyValue).ToString("o");
+                            } else if ((ExportEdmType)property.PropertyType == ExportEdmType.DateTime) {
+                                property.PropertyValue = ((DateTime)property.PropertyValue).ToUniversalTime();
                             }
                         }
 
