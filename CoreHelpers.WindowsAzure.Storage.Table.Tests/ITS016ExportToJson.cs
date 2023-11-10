@@ -32,7 +32,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
                 storageContext.AddAttributeMapper(typeof(DemoModel2), tableName1);
 
                 // create model with data in list
-                var model = new DemoModel2() { P = "1", R = "2" };
+                var model = new DemoModel2() { P = "1", R = "2", CreatedAt = DateTime.Parse("2023-11-10T19:09:50.065462+00:00").ToUniversalTime()};
 
                 // inser the model                    
                 await storageContext.EnableAutoCreateTable().MergeOrInsertAsync<DemoModel2>(new List<DemoModel2>() { model });
@@ -46,7 +46,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests
 
                 // verify the targetstream
                 var parsedStream = Encoding.Default.GetString(targetStream.GetBuffer()).Split("\0")[0];
-                var expectedStreamValue = "[{\"RowKey\":\"2\",\"PartitionKey\":\"1\",\"Properties\":[{\"PropertyName\":\"P\",\"PropertyType\":0,\"PropertyValue\":\"1\"},{\"PropertyName\":\"R\",\"PropertyType\":0,\"PropertyValue\":\"2\"}]}]";
+                var expectedStreamValue = "[{\"RowKey\":\"2\",\"PartitionKey\":\"1\",\"Properties\":[{\"PropertyName\":\"CreatedAt\",\"PropertyType\":3,\"PropertyValue\":\"2023-11-10T19:09:50.065462+00:00\"},{\"PropertyName\":\"P\",\"PropertyType\":0,\"PropertyValue\":\"1\"},{\"PropertyName\":\"R\",\"PropertyType\":0,\"PropertyValue\":\"2\"}]}]";
                 Assert.Equal(expectedStreamValue, parsedStream);
 
                 // drop table

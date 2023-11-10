@@ -67,7 +67,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                             switch (propertyKvp.Value.GetType().GetEdmPropertyType())
                             {
                                 case ExportEdmType.DateTime:
-                                    wr.WriteValue(((DateTime)propertyKvp.Value).ToUniversalTime());
+                                    wr.WriteValue(((DateTimeOffset)propertyKvp.Value).ToUniversalTime());
                                     break;
                                 default:
                                     wr.WriteValue(propertyKvp.Value);
