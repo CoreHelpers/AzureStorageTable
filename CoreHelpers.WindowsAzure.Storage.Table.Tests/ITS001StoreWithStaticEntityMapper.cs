@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Contracts;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Delegates;
 using CoreHelpers.WindowsAzure.Storage.Table.Tests.Extensions;

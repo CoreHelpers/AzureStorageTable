@@ -95,7 +95,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
                 }
 
                 // set the item
-                Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, _context.context.GetEntityMapper<T>());
+                Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, _context.context.GetEntityMapper<T>(), _context.context);
 
                 // done
                 return true;
@@ -140,9 +140,12 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
 
             // evaluate the maxItems
             int? maxPerPage = _context.maxPerPage.HasValue && _context.maxPerPage.Value > 0 ? _context.maxPerPage : null;
-            
+
+            // fix Azurite bug
+            var filter = string.IsNullOrWhiteSpace(_context.filter) ? null : _context.filter;
             // start the query
-            _pageEnumerator = tc.Query<TableEntity>(_context.filter, maxPerPage, _context.select, _context.cancellationToken).AsPages().GetEnumerator();
+            _pageEnumerator = tc.Query<TableEntity>(filter, maxPerPage, _context.select, _context.cancellationToken).AsPages().GetEnumerator();
+            
         }
     }
 

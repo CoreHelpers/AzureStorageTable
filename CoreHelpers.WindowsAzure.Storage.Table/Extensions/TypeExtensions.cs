@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+
 namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
 {
     public enum ExportEdmType
@@ -34,7 +36,25 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
             else if (type == typeof(Int64))
                 return ExportEdmType.Int64;
             else
-                throw new NotImplementedException($"Datatype {type.ToString()} not supporter");            
+                throw new NotImplementedException($"Datatype {type.ToString()} not supporter");
+        }
+
+        public static bool IsDerivedFromGenericParent(this Type type, Type parentType)
+        {
+            if (!parentType.IsGenericType)
+            {
+                throw new ArgumentException("type must be generic", "parentType");
+            }
+            if (type == null || type == typeof(object))
+            {
+                return false;
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == parentType)
+            {
+                return true;
+            }
+            return type.BaseType.IsDerivedFromGenericParent(parentType)
+                || type.GetInterfaces().Any(t => t.IsDerivedFromGenericParent(parentType));
         }
     }
 }

@@ -57,19 +57,19 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                     switch (storaeOperationType)
                     {
                         case nStoreOperation.insertOperation:
-                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Add, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Add, TableEntityDynamic.ToEntity<T>(model, entityMapper, this)));
                             break;
                         case nStoreOperation.insertOrReplaceOperation:
-                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertReplace, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertReplace, TableEntityDynamic.ToEntity<T>(model, entityMapper, this)));
                             break;
                         case nStoreOperation.mergeOperation:
-                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpdateMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpdateMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper, this)));
                             break;
                         case nStoreOperation.mergeOrInserOperation:
-                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.UpsertMerge, TableEntityDynamic.ToEntity<T>(model, entityMapper, this)));
                             break;
                         case nStoreOperation.delete:
-                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Delete, TableEntityDynamic.ToEntity<T>(model, entityMapper)));
+                            tableTransactions.Add(new TableTransactionAction(TableTransactionActionType.Delete, TableEntityDynamic.ToEntity<T>(model, entityMapper, this)));
                             break;
                     }
 

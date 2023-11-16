@@ -32,7 +32,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                     foreach (var model in models)
                     {
                         // convert the model to a dynamic entity
-                        var t = TableEntityDynamic.ToEntity<T>(model, entityMapper);
+                        var t = TableEntityDynamic.ToEntity<T>(model, entityMapper, this);
 
                         // lookup the partitionkey list
                         if (!partionKeyDictionary.ContainsKey(t.PartitionKey))
