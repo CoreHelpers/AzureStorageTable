@@ -12,6 +12,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Tests.Models
 
         [RowKey]
         public string R { get; set; } = "R1";
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
 
