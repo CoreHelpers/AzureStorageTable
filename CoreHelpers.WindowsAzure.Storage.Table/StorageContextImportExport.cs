@@ -27,7 +27,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
                 // build the json writer
                 JsonWriter wr = new JsonTextWriter(writer);
-
+                
                 // prepare the array in result
                 wr.WriteStartArray();
 
@@ -63,7 +63,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                             wr.WritePropertyName(TableConstants.PropertyType);
                             wr.WriteValue(propertyKvp.Value.GetType().GetEdmPropertyType());
                             wr.WritePropertyName(TableConstants.PropertyValue);
-                            wr.WriteValue(propertyKvp.Value);
+
+                            switch (propertyKvp.Value.GetType().GetEdmPropertyType())
+                            {
+                                case ExportEdmType.DateTime:
+                                    wr.WriteValue(((DateTimeOffset)propertyKvp.Value).ToUniversalTime());
+                                    break;
+                                default:
+                                    wr.WriteValue(propertyKvp.Value);
+                                    break;
+                            }
+
                             wr.WriteEndObject();
                         }
                         wr.WriteEnd();
@@ -113,6 +123,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                             if ((ExportEdmType)property.PropertyType == ExportEdmType.String && property.PropertyValue is DateTime)
                             {
                                 property.PropertyValue = ((DateTime)property.PropertyValue).ToString("o");
+                            } else if ((ExportEdmType)property.PropertyType == ExportEdmType.DateTime) {
+                                property.PropertyValue = ((DateTime)property.PropertyValue).ToUniversalTime();
                             }
                         }
 

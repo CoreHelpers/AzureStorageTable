@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using CoreHelpers.WindowsAzure.Storage.Table.Backup.Abstractions;
+using CoreHelpers.WindowsAzure.Storage.Table.Backup.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
@@ -34,15 +35,9 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
         {
             using (_logger.BeginScope("Starting backup procedure..."))
             {
-
-                // generate the excludeTables
-                var excludedTablesList = new List<string>();
-                if (excludedTables != null)
-                {
-                    foreach (var tbl in excludedTables)
-                        excludedTablesList.Add(tbl.ToLower());
-                }
-
+                // build the exclude validator
+                var excludeValidator = new TabledExcludeExpressionValidator(excludedTables);
+                
                 // get all tables 
                 var tables = await storageContext.QueryTableList();
                 _logger.LogInformation($"Processing {tables.Count} tables");
@@ -78,7 +73,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Backup
                         }
 
                         // check the  excluded tables
-                        if (excludedTablesList.Contains(tableName.ToLower()))
+                        if (excludeValidator.IsTableExcluded(tableName))
                         {
                             _logger.LogInformation($"Ignoring table {tableName} (is part of excluded tables)...");
                             continue;
