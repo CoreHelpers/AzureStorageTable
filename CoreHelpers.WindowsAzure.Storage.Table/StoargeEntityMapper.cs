@@ -9,6 +9,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 		public String RowKeyFormat { get; set; }
         public nVirtualValueEncoding RowKeyEncoding { get; set; }
         public String TableName { get; set; }
+        public string TypeField { get; internal set; }
 
         public StorageEntityMapper() 
         {}
