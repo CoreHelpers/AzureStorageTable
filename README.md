@@ -1,5 +1,8 @@
 [![Build Status](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml/badge.svg)](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml)
 
+! NOTICE THIS IS A CUSTOM BUILD OF AzureStorageTable that contains the following additional features:
+* Multiple Types in the same table (Base objects)
+
 # AzureStorageTable
 This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity 
 from ITableEntity or TableEntity looks like a step backwards. The current implementation is intended to be an 
@@ -157,6 +160,56 @@ public class JObjectModel
  [StoreAsJsonObject]
  public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
 }
+```
+
+## Store Multiple Objects Types in the same Table
+If multiple objects share a common base class, it can be used to store them in the same table. The base class must be decorated with the Storable attribute with the `TypeField` parameter set. It is best practice to NOT include the type field in the model. 
+ 
+```csharp 
+    [Storable(TypeField = "Type")]
+    public class BaseModel
+    {
+        [PartitionKey]
+        public string P { get; set; } = "Partition01";
+
+        [RowKey]
+        public string R { get; set; } = String.Empty;
+
+    }
+
+	public class MultipleModels1 : MultipleModelsBase
+	{
+        public string Model1Field { get; set; } = String.Empty;
+
+	}
+
+    public class MultipleModels2 : MultipleModelsBase
+    {
+        public string Model2Field { get; set; } = String.Empty;
+
+    }
+
+```
+
+When saving and querying it is important to use the base class as the generic type. 
+
+```csharp 
+	using (var storageContext = new StorageContext(storageKey, storageSecret))
+	{
+		storageContext.AddAttributeMapper();
+
+		storageContext.CreateTable<BaseModel>();
+
+		storageContext.MergeOrInsert<BaseModel>(new MultipleModels1() { R = "Row01", Model1Field = "Model1Field" });
+		storageContext.MergeOrInsert<BaseModel>(new MultipleModels2() { R = "Row02", Model2Field = "Model2Field" });
+
+		var result = storageContext.Query<BaseModel>();
+
+		foreach (var r in result)
+		{
+			Console.WriteLine(r.GetType().Name);
+		}
+	}
 ```
 
 # Contributing to Azure Storage Table

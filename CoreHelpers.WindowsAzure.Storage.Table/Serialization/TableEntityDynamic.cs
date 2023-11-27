@@ -29,12 +29,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             builder.AddPartitionKey(GetTableStorageDefaultProperty<string, T>(entityMapper.PartitionKeyFormat, model));
             builder.AddRowKey(GetTableStorageDefaultProperty<string, T>(entityMapper.RowKeyFormat, model), entityMapper.RowKeyEncoding);
 
+            var modelType = model.GetType();
+
             // get all properties from model 
-            IEnumerable<PropertyInfo> objectProperties = model.GetType().GetTypeInfo().GetProperties();
+            IEnumerable<PropertyInfo> objectProperties = modelType.GetTypeInfo().GetProperties();
+
+            // it is not required and preferred NOT to have the type field in the model as we can ensure equality
+            builder.AddProperty(entityMapper.TypeField, modelType.AssemblyQualifiedName);
 
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
             {
+                if (property.Name == entityMapper.TypeField)
+                    continue;
+
                 if (ShouldSkipProperty(property))
                     continue;
 
