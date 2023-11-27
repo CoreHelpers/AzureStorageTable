@@ -1,5 +1,8 @@
 [![Build Status](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml/badge.svg)](https://github.com/CoreHelpers/AzureStorageTable/actions/workflows/ci-build.yml)
 
+! NOTICE THIS IS A CUSTOM BUILD OF AzureStorageTable that contains the following additional features:
+* Multiple Types in the same table (Base objects)
+
 # AzureStorageTable
 This projects implements an abstraction for Azure Storage Tables to use POCOs because deriving every entity 
 from ITableEntity or TableEntity looks like a step backwards. The current implementation is intended to be an 
