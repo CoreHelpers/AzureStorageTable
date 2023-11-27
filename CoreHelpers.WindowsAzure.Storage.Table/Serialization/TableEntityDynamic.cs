@@ -35,7 +35,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Serialization
             IEnumerable<PropertyInfo> objectProperties = modelType.GetTypeInfo().GetProperties();
 
             // it is not required and preferred NOT to have the type field in the model as we can ensure equality
-            builder.AddProperty(entityMapper.TypeField, modelType.AssemblyQualifiedName);
+            if (!string.IsNullOrEmpty(entityMapper.TypeField))
+                builder.AddProperty(entityMapper.TypeField, modelType.AssemblyQualifiedName);
 
             // visit all properties
             foreach (PropertyInfo property in objectProperties)
