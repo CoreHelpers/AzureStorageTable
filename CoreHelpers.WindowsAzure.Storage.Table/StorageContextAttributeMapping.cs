@@ -62,11 +62,17 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
 
         public void AddAttributeMapper(Type type, String optionalTablenameOverride)
         {
+            string typeField = null;
+
             // get the concrete attribute
             var storableAttribute = type.GetTypeInfo().GetCustomAttribute<StorableAttribute>();
             if (String.IsNullOrEmpty(storableAttribute.Tablename))
             {
                 storableAttribute.Tablename = type.Name;
+            }
+            if (!String.IsNullOrEmpty(storableAttribute.TypeField))
+            {
+                typeField = storableAttribute.TypeField;
             }
 
             // store the neded properties
@@ -111,7 +117,8 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
                 TableName = String.IsNullOrEmpty(optionalTablenameOverride) ? storableAttribute.Tablename : optionalTablenameOverride,
                 PartitionKeyFormat = partitionKeyFormat,
                 RowKeyFormat = rowKeyFormat,
-                RowKeyEncoding = rowKeyEncoding
+                RowKeyEncoding = rowKeyEncoding,
+                TypeField = typeField,
             });
         }
 
