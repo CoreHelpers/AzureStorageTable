@@ -49,8 +49,34 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Extensions
                 // check the exception
                 if (allowAutoCreate && ex.ErrorCode.Equals("TableNotFound"))
                 {
-                    // try to create the table
-                    await tc.CreateAsync();
+                    
+                    // This is a double check pattern to ensure that two independent processes 
+                    // who are trying to create the table in parallel do not end up in an unhandled
+                    // situation.   
+                    try
+                    {
+                        // try to create the table
+                        await tc.CreateAsync();
+                    }
+                    catch (TableTransactionFailedException doubleCheckEx)
+                    {
+                        // check if we have an errorCode if not the system throws the exception 
+                        // to the caller 
+                        if (String.IsNullOrEmpty(doubleCheckEx.ErrorCode))
+                        {
+                            ExceptionDispatchInfo.Capture(ex).Throw();
+                            return null;
+                        }
+                        
+                        // Every error except the TableAlreadyExists is thrown to the caller but 
+                        // in the case the system is trying to create the table in parallel we
+                        // ignore the error and execute the transaction!
+                        if (!doubleCheckEx.ErrorCode.Equals("TableAlreadyExists"))
+                        {
+                            ExceptionDispatchInfo.Capture(ex).Throw();
+                            return null;
+                        }
+                    }
 
                     // retry 
                     return await tc.SubmitTransactionAsync(transactionActions, cancellationToken);
