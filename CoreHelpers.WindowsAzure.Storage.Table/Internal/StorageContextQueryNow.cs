@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -94,8 +95,20 @@ namespace CoreHelpers.WindowsAzure.Storage.Table.Internal
                     return MoveNextInternal(false);
                 }
 
+                var entityMapper = _context.context.GetEntityMapper<T>();
+
                 // set the item
-                Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, _context.context.GetEntityMapper<T>());
+                if (entityMapper.TypeField == null)
+                    Current = TableEntityDynamic.fromEntity<T>(_inPageEnumerator.Current, entityMapper);
+                else
+                {
+                    var entity = _inPageEnumerator.Current;
+                    var typeName = entity.GetString(entityMapper.TypeField);
+                    Type type = Type.GetType(typeName);
+                    MethodInfo method = typeof(TableEntityDynamic).GetMethod(nameof(TableEntityDynamic.fromEntity));
+                    MethodInfo genericMethod = method.MakeGenericMethod(type);
+                    Current = genericMethod.Invoke(null, [_inPageEnumerator.Current, entityMapper] ) as T;
+                }
 
                 // done
                 return true;
