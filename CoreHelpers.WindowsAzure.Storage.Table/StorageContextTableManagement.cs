@@ -107,8 +107,7 @@ namespace CoreHelpers.WindowsAzure.Storage.Table
         {
             var tables = new List<string>();
 
-            var tsc = new TableServiceClient(_connectionString);
-            var tablePages = tsc.QueryAsync().AsPages();
+            var tablePages = tableServiceClient.QueryAsync().AsPages();
 
             await foreach (var tablePage in tablePages)
                 tables.AddRange(tablePage.Values.Select(t => t.Name));
