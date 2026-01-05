@@ -143,6 +143,29 @@ public class VDictionaryModel
 }
 ```
 
+## Store Enum as String Attribute
+The store enum as string attribute allows to store enum values as string in Azure Table Store with the following code: 
+
+```csharp
+[Storable(Tablename: "EnumModel")]
+public class EnumtModel
+{
+
+ public enum TestEnum
+ {
+  First,
+  Second
+ }
+
+ [PartitionKey]
+ [RowKey]
+ public string UUID { get; set; }
+ 
+ [StoreEnumAsString]
+ public TestEnum Data { get; set; };
+}
+```
+
 ## Store as JSON Object Attribute
 The store as JSON attribute allows to store refenrenced objects as json payload for a specific property
  
